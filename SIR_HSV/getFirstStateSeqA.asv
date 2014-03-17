@@ -1,0 +1,16 @@
+function state = getFirstStateSeqA(gt, width, height)
+    % tempo hardcode
+    global WIDTH HEIGHT;
+    
+    x0 = 0.626068; % for vid_a_ball
+    y0 = 0.473884; % for vid_a_ball
+    state.x = round(gt(1,2) * width);
+    state.y = round(gt(1,3) * height);
+    state.w = 
+    rectw0 = 0.14; % for vid_a_ball
+    recth0 = 0.19; % for vid_a_ball
+        
+    WIDTH = round(rectw0 * width);
+    HEIGHT = round(recth0 * height);
+    
+end
