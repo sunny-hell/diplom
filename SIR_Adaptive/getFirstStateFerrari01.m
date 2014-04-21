@@ -5,5 +5,7 @@ function state = getFirstStateFerrari01(gt)
     state.y = gt(1,3);
     state.w = gt(1,4);
     state.ar = gt(1,5);
+    state.h = state.w*state.ar;
+    disp(state.h)
     state.lastFrame = gt(n,1);
 end

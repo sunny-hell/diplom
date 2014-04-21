@@ -1,4 +1,4 @@
-function video_processing_estimation(fname_src, fname_gt, fname_res, niter, np, nb, ds, devs)
+function [qual] = video_processing_estimation(fname_src, fname_gt, fname_templ, fname_res, niter, np, nb, ds, devs)
     global Q_TEMPL KOEFF SIGMA N N_BINS R ALPHA BETA ERF_COEFF A DEVS;
     clc;
     close all;
@@ -39,18 +39,14 @@ function video_processing_estimation(fname_src, fname_gt, fname_res, niter, np, 
     %  state = getFirstStateFerrari01(gt);
     nFrames = state.lastFrame - state.firstFrame + 1;
     disp('get first state'); 
-    rect = [state.x, state.y, state.w, state.w*state.ar];
     mov(1:nFrames) = struct('cdata', zeros(height, width, 3, 'uint8'),...
                            'colormap', []);
       
     mov(1).cdata = read(videoObj, state.firstFrame);
     
     disp('read first frame');
-    %imshow(mov(1).cdata);
-    %hold on;
-    %rectangle('Position', rect, 'LineWidth',2, 'EdgeColor','b');
-    hsvI = rgb2hsv(mov(1).cdata);
-    templ_reg = imcrop(hsvI, rect);
+    templ_reg = rgb2hsv(imread(fname_templ));
+    
     Q_TEMPL = getHSVHist(templ_reg);
     totalres = zeros(niter, 2);
     %fileID = fopen('mov01_non_adaptive_results.txt', 'w');
@@ -79,34 +75,19 @@ function video_processing_estimation(fname_src, fname_gt, fname_res, niter, np, 
             state.x = sum(particles(:,1).*particles(:,9));
             state.y = sum(particles(:,2).*particles(:,9));
             state.w = sum(particles(:,3).*particles(:,9)); 
-            state.ar = sum(particles(:,4).*particles(:,9));
+            state.h = sum(particles(:,4).*particles(:,9));
             
-            estH = state.w*state.ar;
-            estRect = [state.x state.y state.w estH];
-%             h=figure('Visible', 'off');
-%             imshow(mov(k).cdata);
-%             hold on;
-%            %scatter(particles(:,1), particles(:,2));
-%             rectangle('Position', estRect, 'LineWidth',2, 'EdgeColor','b');
-%             fname = fullfile('results', sprintf('%d.jpg', k+state.firstFrame-1)); 
-%             saveas(h, fname, 'jpg');
-%          if ((k == 1) || ...
-%              (rem(k,10) == 0))  ...
-%              ...
-%              figure('Visible', 'on');
-%          
-%           
-%         end
-              if isBobot
+            estRect = [state.x state.y state.w state.h];
+            if isBobot
                 [gtRect estRect] = getRegionsForQualityIndexBobot(estRect, gt(k,:), width, height);
-              else
+            else
                 if isFerrari
-                    [gtRect estRect] = getRegionsForQualityIndexFerrari(estRect, gt(k,:));
+                   [gtRect estRect] = getRegionsForQualityIndexFerrari(estRect, gt(k,:));
                 end
-              end
-            %gtRect = [gt(k, 2:4) gt(k, 4).*gt(k, 5)];
+            end
+            
             qInds(k) = qualityIndex(estRect, gtRect);
-            fprintf(fileID, '%d %e %e %e %e %e\n', k+state.firstFrame-1, state.x, state.y, state.w, state.ar, qInds(k));
+            fprintf(fileID, '%d %e %e %e %e %e\n', k+state.firstFrame-1, state.x, state.y, state.w, state.h, qInds(k));
         % get next frame
             if (k < nFrames && iter==1)
                 mov(k+1).cdata = read(videoObj, k+state.firstFrame);
@@ -121,6 +102,9 @@ function video_processing_estimation(fname_src, fname_gt, fname_res, niter, np, 
         fprintf(fileID, 'result for iter %d: %e %e\n', iter, totalres(iter, 1), totalres(iter,2));
         disp('iteration results: ');
         disp(totalres(iter,:));
+        
     end
+    qual = sum(totalres(:,1)/niter);
+    fprintf(fileID, 'total result: %f\n', qual); 
     fclose(fileID);
 end

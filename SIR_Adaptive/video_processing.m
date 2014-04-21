@@ -1,4 +1,4 @@
-function video_processing(fname_src, fname_gt, fname_res, np, nb, ds, devs, fld)
+function video_processing(fname_src, fname_gt, fname_templ, fname_res, np, nb, ds, devs, fld, hist_int, adaptive, save_frames)
     global Q_TEMPL KOEFF SIGMA N N_BINS R ALPHA BETA ERF_COEFF A DEVS;
    % clc;
     close all;
@@ -42,14 +42,19 @@ function video_processing(fname_src, fname_gt, fname_res, np, nb, ds, devs, fld)
     mov(1).cdata = read(videoObj, tstate.firstFrame);
     
     disp('read first frame');
-    %figure(100)
-    imshow(mov(1).cdata);
-    hold on;
+    templ_reg = rgb2hsv(imread(fname_templ));
     
-    hsvI = rgb2hsv(mov(1).cdata);
-    rect = [tstate.x, tstate.y, tstate.w, tstate.w*tstate.ar];
-    rectangle('Position', rect, 'LineWidth',2, 'EdgeColor','b');
-    templ_reg = imcrop(hsvI, rect);
+    %hdl = figure(2);
+  %  mov(49).cdata = read(videoObj, tstate.firstFrame+49);
+  %  imshow(mov(49).cdata);
+  %  hold on;
+    %saveas(h, 'ref_hist', 'jpg');
+    
+    %hsvI = rgb2hsv(mov(1).cdata);
+    
+  %  rect = [215, 481, 127, 87];
+  %  rectangle('Position', rect, 'LineWidth',2, 'EdgeColor','b');
+    %templ_reg = imcrop(hsvI, rect);
     Q_TEMPL = getHSVHist(templ_reg);
     totalres = zeros(1,2);
         
@@ -58,35 +63,40 @@ function video_processing(fname_src, fname_gt, fname_res, np, nb, ds, devs, fld)
     %scatter(particles(:,1), particles(:,2));
     disp('prepared first set');
     qInds = zeros(1, nFrames);
-    h=figure('Visible', 'off');
+    %h=figure('Visible', 'off');
     for k=1:nFrames
         % process current frame
         t_start = tic;
-        [particles] = processFrameAdaptiveSIR(mov(k).cdata, particles, tstate);
+        if adaptive
+            [particles] = processFrameAdaptiveSIR(mov(k).cdata, particles, tstate);
+        else
+            [particles] = processFrameSimpleSIR(mov(k).cdata, particles, tstate);
+        end
         t_stop = toc(t_start);
         disp(sprintf('Frame %d: %5.2f sec\n', k, t_stop));
         tstate.x = sum(particles(:,1).*particles(:,9));
         tstate.y = sum(particles(:,2).*particles(:,9));
         tstate.w = sum(particles(:,3).*particles(:,9)); 
-        tstate.ar = sum(particles(:,4).*particles(:,9));
+        tstate.h = sum(particles(:,4).*particles(:,9));
             
-        estH = tstate.w*tstate.ar;
-        estRect = [tstate.x tstate.y tstate.w estH];
+        %estH = tstate.w*tstate.ar;
+        estRect = [tstate.x tstate.y tstate.w tstate.h];
         
         imshow(mov(k).cdata);
         hold on;
-        %scatter(particles(:,1), particles(:,2));
+     %   scatter(particles(:,1), particles(:,2));
         rectangle('Position', estRect, 'LineWidth',2, 'EdgeColor','b');
-        fname = fullfile('results', fld, sprintf('%d.jpg', k+tstate.firstFrame-1)); 
-        saveas(h, fname, 'jpg');
+        if save_frames
+            fname = fullfile('results', fld, sprintf('%d.jpg', k+tstate.firstFrame-1)); 
+            hdl = gcf;
+            saveas(hdl, fname, 'jpg');
+        end
         hold off;
-%          if ((k == 1) || ...
-%              (rem(k,10) == 0))  ...
-%              ...
-%              figure('Visible', 'on');
-%          
-%           
-%         end
+        
+        if hist_int > 0 && rem(k,hist_int) == 0 
+            draw_hists(particles, 25, estRect, 3, fullfile('results', fld, 'hists', sprintf('hist_%d.jpg', k+tstate.firstFrame-1))); 
+            figure(hdl);
+        end
         if isBobot
             [gtRect estRect] = getRegionsForQualityIndexBobot(estRect, gt(k,:), width, height);
         else
@@ -95,8 +105,9 @@ function video_processing(fname_src, fname_gt, fname_res, np, nb, ds, devs, fld)
             end
         end
         qInds(k) = qualityIndex(estRect, gtRect);
-        fprintf(fileID, '%d %e %e %e %e %e\n', k+tstate.firstFrame-1, tstate.x, tstate.y, tstate.w, tstate.ar, qInds(k));
+        fprintf(fileID, '%d %e %e %e %e %e\n', k+tstate.firstFrame-1, tstate.x, tstate.y, tstate.w, tstate.h, qInds(k));
       % get next frame
+        
         if (k < nFrames)
             mov(k+1).cdata = read(videoObj, k+tstate.firstFrame);
         end
@@ -110,5 +121,5 @@ function video_processing(fname_src, fname_gt, fname_res, np, nb, ds, devs, fld)
     fprintf(fileID, '%e %e\n', totalres(1), totalres(2));
     disp('iteration results: ');
     disp(totalres(:));
-    fclose(fileID);
+    fclose('all');
 end

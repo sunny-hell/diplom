@@ -46,14 +46,17 @@ function video_processing_multitarget(M, fname_src, fnames_gt, fname_res, np, nb
     particles = prepareFirstSetMT_AdaptiveSIR(tstates, width, height);
     hsvI = rgb2hsv(mov(1).cdata);
     Q_TEMPL = zeros(N_BINS, 2, size(tstates,2));
-     
+    fileID = zeros(1,M); 
     for i=1:M
         rect = [tstates(i).x, tstates(i).y, tstates(i).w, tstates(i).w*tstates(i).ar];
         Q_TEMPL(:,:,i) = getHSVHist(imcrop(hsvI, rect));
         %rectangle('Position', rects(i,:), 'LineWidth',2, 'EdgeColor','b');
+        disp(fname_res(i,:));
+        fileID(i) = fopen(char(fname_res(i,:)), 'w');
     end
     
     particles = k_means_cluster(tstates, particles, hsvI);
+    qInds = zeros(M, nFrames);
     
 %     t1_parts = particles(particles(:,11)==1,1:2);
 %     t2_parts = particles(particles(:,11)==2,1:2);
@@ -61,7 +64,9 @@ function video_processing_multitarget(M, fname_src, fnames_gt, fname_res, np, nb
 %     scatter(t1_parts(:,1), t1_parts(:,2), 'MarkerEdgeColor', 'b');
 %     scatter(t2_parts(:,1), t2_parts(:,2), 'MarkerEdgeColor', 'r');
 %     hsvI = rgb2hsv(mov(1).cdata);
+    h = figure(1); 
     targetWeights = repmat(1/M, M, 1);
+    colors = [1 0 0; 0 1 0]; %%%% временно, для двух целей!
     for k=1:nFrames
         % process current frame
         t_start = tic;
@@ -78,40 +83,24 @@ function video_processing_multitarget(M, fname_src, fnames_gt, fname_res, np, nb
             tstates(t).ar = sum(particles(templ, 4).*particles(templ, 9));
             estH = tstates(t).w*tstates(t).ar;
             estRect = [tstates(t).x tstates(t).y tstates(t).w estH];
-            rectangle('Position', estRect, 'LineWidth',2);
-        end
-%         tstate.x = sum(particles(:,1).*particles(:,9));
-%         tstate.y = sum(particles(:,2).*particles(:,9));
-%         tstate.w = sum(particles(:,3).*particles(:,9)); 
-%         tstate.ar = sum(particles(:,4).*particles(:,9));
             
-        
-        
-        
-        %scatter(particles(:,1), particles(:,2));
-        
-        %fname = fullfile('results', fld, sprintf('%d.jpg', k+tstate.firstFrame-1)); 
-        %saveas(h, fname, 'jpg');
+            rectangle('Position', estRect, 'LineWidth',2, 'EdgeColor', colors(t,:));
+            if isBobot
+                [gtRect estRect] = getRegionsForQualityIndexBobot(estRect, gt(k,:, t), width, height);
+            end
+
+            qInds(t, k) = qualityIndex(estRect, gtRect);
+            fprintf(fileID(t), '%d %e %e %e %e %e\n', k+tstates(t).firstFrame-1, tstates(t).x, tstates(t).y, tstates(t).w, tstates(t).ar, qInds(t,k));
+        end
+      
+        fname = fullfile('results', fld, sprintf('%d.jpg', k+tstates(1).firstFrame-1)); 
+        saveas(h, fname, 'jpg');
         hold off;
-%          if ((k == 1) || ...
-%              (rem(k,10) == 0))  ...
-%              ...
-%              figure('Visible', 'on');
-%          
-%           
-%         end
-%         if isBobot
-%             [gtRect estRect] = getRegionsForQualityIndexBobot(estRect, gt(k,:), width, height);
-%         else
-%             if isFerrari
-%                 [gtRect estRect] = getRegionsForQualityIndexFerrari(estRect, gt(k,:));
-%             end
-%         end
-%         qInds(k) = qualityIndex(estRect, gtRect);
-        %fprintf(fileID, '%d %e %e %e %e %e\n', k+tstate.firstFrame-1, tstate.x, tstate.y, tstate.w, tstate.ar, qInds(k));
+      
       % get next frame
         if (k < nFrames)
             mov(k+1).cdata = read(videoObj, k+tstates(1).firstFrame);
         end
     end
+    
 end

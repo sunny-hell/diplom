@@ -62,7 +62,7 @@ function [particles] = processFrameMT_AdaptiveSIR(I, curSet, states)
         templ = curSet(:,11) == t;
         % resamling
         r = rand;  % draw r from uniform distribution
-        j = find(curSet(templ, 10) >= r, 1, 'first') % индекс первой частицы в наборе для цели t, cumulative weight которой больше r
+        j = find(curSet(:, 10) >= r & templ , 1, 'first'); % индекс первой частицы в наборе для цели t, cumulative weight которой больше r
         try
             particles(i, :) = curSet(j, :);           % копируем данную частицу в новый набор
         catch err
@@ -113,8 +113,8 @@ function [particles] = processFrameMT_AdaptiveSIR(I, curSet, states)
     
     for t=1:m
         templ = particles(:,11)==t;
-        disp('t='); disp(t);
-        disp(particles(templ, 9))
+        %disp('t='); disp(t);
+        %disp(particles(templ, 9))
         %disp(particles(templ, 10))
         particles(templ, 9) = particles(templ,9)/cumSums(t);
         particles(templ, 10) = particles(templ,10)/cumSums(t);
