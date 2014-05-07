@@ -20,51 +20,28 @@ FileProcessor::~FileProcessor() {
 	// TODO Auto-generated destructor stub
 }
 
-State** FileProcessor::readGTStatesFerrari(const char *fname, int *firstFrameNum, int *lastFrameNum){
+State** FileProcessor::readGTStates(const char *fname, const char *gtType, int *firstFrameNum, int *lastFrameNum){
 	ifstream inputFile;
 	inputFile.open(fname, ifstream::in);
-	int nFrames = count(istreambuf_iterator<char>(inputFile), istreambuf_iterator<char>(), '\n');
+	string line;
+	int nFrames = count(istreambuf_iterator<char>(inputFile),
+	      istreambuf_iterator<char>(), '\n');
 	cout << "num of frames in ground truth " << nFrames << endl;
 	State **states = new State*[nFrames];
-	int frameNum;
-	string line;
 	inputFile.seekg(0, ios::beg);
-	for (int i=0; i<nFrames; i++){
+	int i;
+	int frameNum;
+	for (i=0; i<nFrames; i++){
 		getline(inputFile, line);
 		istringstream iss(line);
-		float x,y,w,ar;
+		if (strcmp(gtType, "ferrari") == 0){
+			float x,y,w,ar;
 
-		iss >> frameNum >> x >> y >> w >> ar;
-		states[i] = new State(x,y,w,w*ar, frameNum);
-		if (i==0){
-			*firstFrameNum = frameNum;
-		}
-
-	}
-	*lastFrameNum = frameNum;
-	inputFile.close();
-	return states;
-}
-
-State** FileProcessor::readGTStatesBobot(const char *fname, int *firstFrameNum, int *lastFrameNum, int frameWidth, int frameHeight){
-	ifstream inputFile;
-	inputFile.open(fname, ifstream::in);
-
-	int nFrames = count(istreambuf_iterator<char>(inputFile), istreambuf_iterator<char>(), '\n');
-	cout << "num of frames in ground truth " << nFrames << endl;
-	State **states = new State*[nFrames];
-	string line;
-	int frameNum;
-	inputFile.seekg(0, ios::beg);
-	for (int i=0; i<nFrames; i++){
-		getline(inputFile, line);
-		istringstream iss(line);
-		float x,y,w,h;
-
-		iss >> frameNum >> x >> y >> w >> h;
-		states[i] = new State(x*frameWidth,y*frameHeight,w*frameWidth,h*frameHeight, frameNum);
-		if (i==0){
-			*firstFrameNum = frameNum;
+			iss >> frameNum >> x >> y >> w >> ar;
+			states[i] = new State(x,y,w,w*ar, frameNum);
+			if (i==0){
+				*firstFrameNum = frameNum;
+			}
 		}
 	}
 	*lastFrameNum = frameNum;

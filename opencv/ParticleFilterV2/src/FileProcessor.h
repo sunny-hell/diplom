@@ -25,10 +25,10 @@ public:
 	FileProcessor();
 	virtual ~FileProcessor();
 
-	State** readGTStatesFerrari(const char *fname, int *firstFrameNum, int *lastFrameNum);
-	State** readGTStatesBobot(const char *fname, int *firstFrameNum, int *lastFrameNum, int frameWidth, int frameHeight);
+	State** readGTStates(const char *fname, const char *gtType, int *firstFrameNum, int *lastFrameNum);
 	void writeNumbers(const char *fname, VectorXd numbers);
 	void saveCalculationResult(const char *fName, CalculationResult *res);
+
 };
 
 #endif /* FILEPROCESSOR_H_ */

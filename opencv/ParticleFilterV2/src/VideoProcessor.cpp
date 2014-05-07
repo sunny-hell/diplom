@@ -46,33 +46,25 @@ void VideoProcessor::shiftToFrame(int frameNum){
 void VideoProcessor::processVideo(){
 	FileProcessor* fp = new FileProcessor();
 	int firstFrame, lastFrame;
+	states = fp->readGTStates(fNameGT, gtType, &firstFrame, &lastFrame);
+	cout << "firstFrame: " << firstFrame << " lastFrame: " << lastFrame << endl;
+	string winName = "pf";
+	namedWindow(winName, CV_WINDOW_AUTOSIZE);
 	capture.open(fNameVideo);
 	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 	cout << "width: " << width << endl;
 	cout << "height: " << height << endl;
-	if (strcmp(gtType, "ferrari") == 0){
-		states = fp->readGTStatesFerrari(fNameGT, &firstFrame, &lastFrame);
-	} else if (strcmp(gtType, "bobot") == 0){
-		states = fp->readGTStatesBobot(fNameGT, &firstFrame, &lastFrame, width, height);
-	}
-	cout << "firstFrame: " << firstFrame << " lastFrame: " << lastFrame << endl;
-	string winName = "pf";
-	namedWindow(winName, CV_WINDOW_AUTOSIZE);
 
 	shiftToFrame(firstFrame-1);
 
 	Mat frame, hsvFrame;
 	capture >> frame;
 	cvtColor(frame, hsvFrame, CV_RGB2HSV);
-	Mat templObj;
+	Mat templObj = imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
 	Mat templObjHsv;
-	if (strlen(fNameRefHist) > 0 ){
-		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
-		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
-	} else {
-		templObjHsv = Mat(hsvFrame, states[0]->getRect());
-	}
+	cvtColor(templObj, templObjHsv, CV_RGB2HSV);
+	//Mat templObjHsv(hsvFrame, states[0]->getRect());
 	Histogramm* templateHist = new Histogramm(templObjHsv, 50, 60);
 
 
@@ -84,7 +76,7 @@ void VideoProcessor::processVideo(){
 	cout << "after prepare first set" << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);
-	ostringstream oss;
+
 	for (int i=firstFrame; i<=lastFrame; i++){
 		//cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
@@ -94,9 +86,6 @@ void VideoProcessor::processVideo(){
 		//cout << estRect.x << " " << estRect.y << " " << estRect.width << " " << estRect.height << endl;
 		rectangle(frame, pf->getEstimatedState(), Scalar(0,0,255,0));
 		imshow(winName, frame);
-		oss << "..//results//" << i << ".jpg";
-		imwrite(oss.str(), frame);
-		oss.str("");
 		waitKey(1);
 		capture >> frame;
 		cvtColor(frame, hsvFrame, CV_RGB2HSV);

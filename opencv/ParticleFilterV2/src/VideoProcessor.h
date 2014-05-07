@@ -12,15 +12,12 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <sstream>
 #include <vector>
 #include <stdio.h>
 #include "FileProcessor.h"
 #include "Histogramm.h"
 #include "ParticleFilter.h"
 #include "CalculationResult.h"
-
-using namespace std;
 
 class VideoProcessor {
 public:
