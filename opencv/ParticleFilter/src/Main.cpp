@@ -48,13 +48,13 @@ int main(int ac, char** av)
 */
 
 
-	double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
-
+	//double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
+	double devs[8] = {10, 10, 0.05, 0.1, 1, 1, 0.005, 0.01};
 
 	try{
-	VideoProcessor *processor = new VideoProcessor("..\\..\\..\\video\\movie01.mjpeg", "..\\..\\..\\gt\\ferrari\\movie01.txt", "", "..\\results\\movie01.txt", "ferrari", devs, true);
-
-	processor->processVideo();
+		VideoProcessor *processor = new VideoProcessor("..\\..\\..\\video\\Vid_I_person_crossing.avi", "..\\..\\..\\gt\\bobot\\Vid_I_person_crossing.txt", "", "..\\results\\Vid_I_person_crossing_na.txt", "bobot", devs, true);
+		processor->setFileNameForWeights("..\\results\\vidI_wgts.txt");
+		processor->processVideo();
 	}
 	catch (exception& e){
 		cout << "Exception e: " << e.what() << endl;

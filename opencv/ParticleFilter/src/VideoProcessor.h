@@ -29,13 +29,14 @@ public:
 	virtual ~VideoProcessor();
 
 	void processVideo();
-
+	void setFileNameForWeights(const char* fName);
 private:
 	const char *fNameVideo;
 	const char *fNameGT;
 	const char *fNameRefHist;
 	const char *fNameResult;
 	const char* gtType;
+	const char* fNameWeights;
 	//int process(VideoCapture& capture);
 	State **states;
 	VideoCapture capture;

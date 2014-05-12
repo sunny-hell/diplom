@@ -99,3 +99,15 @@ void FileProcessor::saveCalculationResult(const char *fName, CalculationResult *
 	outfile.close();
 }
 
+void FileProcessor::saveWeigts(const char *fName, MatrixXd wgts){
+	ofstream outfile;
+	outfile.open(fName);
+	for (int i=0; i<wgts.rows(); i++){
+		for (int j=0; j<wgts.cols(); j++){
+			outfile << wgts(i,j) << '\t';
+
+		}
+		outfile << '\n';
+	}
+	outfile.close();
+}

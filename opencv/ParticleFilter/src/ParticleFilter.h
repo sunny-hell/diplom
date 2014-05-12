@@ -29,15 +29,24 @@ public:
 	void prepareFirstSet(Rect r);
 	void iter(Mat frame, int k);
 	Rect* getSetAsRects();
+	Point* getSetAsPoints();
 	Rect getEstimatedState();
 	VectorXd dists;
+	VectorXd getWeights();
+	VectorXd getClusterMap();
+	MatrixXd getSetAsClusters();
+	void setClustersNum(int clNum);
+	void calcClusters();
+	void estimateState();
 private:
 	int N;
 	MatrixXd particles;
+	vector<vector<double>> clusters;
+	VectorXd clusterMap;
 	Histogramm *templateHist;
 	Rect estimatedState;
 	//double initialDevs[8];
-	void estimateState();
+
 	int hBins;
 	int sBins;
 	double alpha;
@@ -51,6 +60,8 @@ private:
 	bool adaptive;
 	VectorXd qualityIndex;
 	int nFrames;
+	int clusterNum;
+	VectorXd clusterCenters;
 
 };
 

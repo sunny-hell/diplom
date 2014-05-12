@@ -24,6 +24,7 @@ VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const 
 	this->fNameResult = resultFile;
 	this->gtType = gtType;
 	this->adaptive = adaptive;
+	this->fNameWeights = "";
 	for (int i=0; i<8; i++){
 		this->devs[i] = devs[i];
 	}
@@ -31,6 +32,10 @@ VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const 
 
 VideoProcessor::~VideoProcessor() {
 	// TODO Auto-generated destructor stub
+}
+
+void VideoProcessor::setFileNameForWeights(const char *fName){
+	fNameWeights = fName;
 }
 // перейти к кадру frameNum (с начала видеозаписи)
 void VideoProcessor::shiftToFrame(int frameNum){
@@ -72,6 +77,7 @@ void VideoProcessor::processVideo(){
 		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
 	} else {
 		templObjHsv = Mat(hsvFrame, states[0]->getRect());
+		rectangle(frame, states[0]->getRect(), Scalar(0,255,0,0));
 	}
 	Histogramm* templateHist = new Histogramm(templObjHsv, 50, 60);
 
@@ -79,29 +85,53 @@ void VideoProcessor::processVideo(){
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
+	//pf->setClustersNum(2);
 	cout << "before prepare first set" << endl;
 	pf->prepareFirstSet(states[0]->getRect());
 	cout << "after prepare first set" << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);
-	ostringstream oss;
+	//ostringstream oss;
+	CalculationResult *result = new CalculationResult();
+	result->initWeights(nFrames, 800);
+
+	vector<Scalar> colors(2);
+	colors[0] = Scalar(255, 0,0,0);
+	colors[1] = Scalar(0, 255,0,0);
+	MatrixXd clusters;
 	for (int i=firstFrame; i<=lastFrame; i++){
 		//cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
+		//pf->calcClusters();
+		result->setWeightsForFrame(i-firstFrame, pf->getWeights());
 		Rect estRect = pf->getEstimatedState();
 		qualityIndex(i-firstFrame) = states[i-firstFrame]->getQualityIndex(estRect);
 
 		//cout << estRect.x << " " << estRect.y << " " << estRect.width << " " << estRect.height << endl;
-		rectangle(frame, pf->getEstimatedState(), Scalar(0,0,255,0));
+		Point *points = pf->getSetAsPoints();
+		//clusters = pf->getSetAsClusters();
+		//cout << "clusters: " <<  clusters.rows() << " X " << clusters.cols() << endl;
+		//for (int j=0; j<clusters.rows(); j++)
+		//	circle(frame, Point(clusters(j,0), clusters(j,1)),1, colors[clusters(j,2)]);
+		for (int j=0; j<800; j++)
+			circle(frame, points[j],1, Scalar(0,255,0, 0));
+
+		rectangle(frame, estRect, Scalar(0,0,255,0));
+
 		imshow(winName, frame);
-		oss << "..//results//" << i << ".jpg";
+		//cout << "after imshow " << endl;
+		/*oss << "..//results//" << i << ".jpg";
 		imwrite(oss.str(), frame);
 		oss.str("");
+		*/
 		waitKey(1);
+		frame = Mat();
+		//cout << "before frame captured" << endl;
 		capture >> frame;
+		//cout << "captured new frame" << endl;
 		cvtColor(frame, hsvFrame, CV_RGB2HSV);
 	}
-	CalculationResult *result = new CalculationResult();
+
 	result->setQualityIndex(qualityIndex);
 	result->setFrameNums(firstFrame, lastFrame);
 	cout << result->getAverageQuality();
@@ -109,6 +139,9 @@ void VideoProcessor::processVideo(){
 		result->setDists(pf->dists);
 	}
 	fp->saveCalculationResult(fNameResult, result);
+	if (strlen(fNameWeights) > 0){
+		fp->saveWeigts(fNameWeights, result->getWeights());
+	}
 	//double avgQuality = qualityIndex.sum() / nFrames;
 	//cout << "avg quality: " << avgQuality << endl;
 	waitKey(1);
@@ -116,4 +149,5 @@ void VideoProcessor::processVideo(){
 	capture.release();
 	delete[] states;
 }
+
 

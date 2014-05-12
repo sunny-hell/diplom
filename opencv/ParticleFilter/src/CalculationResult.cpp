@@ -16,6 +16,13 @@ CalculationResult::~CalculationResult() {
 	// TODO Auto-generated destructor stub
 }
 
+void CalculationResult::initWeights(int frameNum, int particlesNum){
+	weights.resize(frameNum, particlesNum);
+}
+
+void CalculationResult::setWeightsForFrame(int f, VectorXd wgts){
+	weights.row(f) = wgts.transpose();
+}
 void CalculationResult::setQualityIndex(VectorXd qInd){
 	qualityIndex = qInd;
 	avgQuality = qInd.sum() / qInd.rows();
@@ -42,4 +49,8 @@ VectorXd CalculationResult::getDists(){
 
 VectorXd CalculationResult::getFrameNums(){
 	return frameNum;
+}
+
+MatrixXd CalculationResult::getWeights(){
+	return weights;
 }

@@ -25,6 +25,7 @@ ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHis
 	this->frameHeight = frameH;
 	this->nFrames = nFrames;
 	this->adaptive = adaptive;
+	this->clusterNum = 0;
 	A.resize(8,8);
 	A.topLeftCorner(4,4).setIdentity();
 	A.bottomLeftCorner(4,4).setZero();
@@ -45,7 +46,21 @@ ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHis
 // определить состояние объекта из набора частиц
 void ParticleFilter::estimateState(){
 	double x=0.0, y=0.0,w=0.0,h=0.0;
+	double maxMean = 0.0;
+	int maxIndex = 0;
+	if (clusterNum > 0){
+		for (int i=0; i<clusterNum; i++){
+			if (clusterCenters(i) > maxMean){
+				maxMean = clusterCenters(i);
+				maxIndex = i;
+			}
+		}
+	}
+	bool withinCluster = clusterNum > 0 && clusters[maxIndex].size() > N/4;
+
 	for (int i=0; i<N; i++){
+		if (withinCluster && clusterMap(i) != maxIndex)
+			continue;
 		double wgt = particles(i,8);
 		x += particles(i,0)*wgt;
 		y += particles(i,1)*wgt;
@@ -58,6 +73,7 @@ void ParticleFilter::estimateState(){
 	if (h < 1) h=1;
 	estimatedState = Rect(x, y, w, h);
 }
+
 
 /*
  * Public part
@@ -96,11 +112,36 @@ Rect* ParticleFilter::getSetAsRects(){
 	}
 	return rects;
 }
+
+// получить набор в виде точек
+Point* ParticleFilter::getSetAsPoints(){
+	Point *points = new Point[N];
+	for (int i=0; i<N; i++){
+		points[i] = Point(particles(i,0), particles(i,1));
+	}
+	return points;
+}
+
+// список весов с текущей итерации
+VectorXd ParticleFilter::getWeights(){
+	return particles.col(8);
+}
 // получить вычисленное состояние объекта как прямоугольник
 Rect ParticleFilter::getEstimatedState(){
 	return estimatedState;
 }
 
+void ParticleFilter::setClustersNum(int clNum){
+	clusterNum = clNum;
+	clusterCenters.resize(clusterNum);
+	clusters.resize(clusterNum);
+	clusterMap.resize(N);
+	clusterCenters.setLinSpaced(1/(double)N*10, 1/(double)N*0.1);
+	for (int i=0; i<clusterNum; i++){
+		//clusterCenters(i) = 1/(double)N*pow(0.1,(double)i);
+		cout << "center i: " << clusterCenters(i) << endl;
+	}
+}
 // итерация алгоритма
 void ParticleFilter::iter(Mat frame, int k){
 	//cout << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
@@ -172,10 +213,77 @@ void ParticleFilter::iter(Mat frame, int k){
 
 	particles.col(8) = particles.col(8) / particles(N-1, 9);
 	particles.col(9) = particles.col(9) / particles(N-1, 9);
+	if (clusterNum > 0)
+		calcClusters();
 	estimateState();
 }
 
+void ParticleFilter::calcClusters(){
 
+	bool nextIter = true;
+	int k=0;
+	while (nextIter){
+		k++;
+		cout << "iter: " << k << endl;
+		for (int i=0; i<clusterNum; i++){
+			clusters[i].clear();
+		}
+		//cout << "cleared clusters" << endl;
+		for (int j =0; j<N; j++){
+			double minDist = 1;
+			int minIndex = 0;
+			for (int i=0; i<clusterNum; i++){
+				double d = abs(particles(j,8)-clusterCenters(i));
+
+				if (d < minDist){
+					minDist = d;
+					minIndex = i;
+				}
+			}
+			clusters[minIndex].push_back(particles(j,8));
+			clusterMap(j) = minIndex;
+			//cout << j << " to " << minIndex << " with mindist " << minDist << endl;
+		}
+
+		nextIter = false;
+		VectorXd newCenters(clusterNum);
+		for (int i=0; i<clusterNum; i++){
+			cout << "in cluster " << i << " " << clusters[i].size() << " elements " << endl;
+			if (clusters[i].size() > 0){
+				double mean = 0.0;
+				for (int j=0; j<clusters[i].size(); j++){
+					mean += clusters[i][j];
+
+				}
+
+				cout << "mean sum " << mean << endl;
+				mean /= (double)clusters[i].size();
+				newCenters(i) = mean;
+			} else {
+				newCenters(i) = clusterCenters(i);
+			}
+			cout << " new center " << i << " is " << newCenters(i) << endl;
+			if (abs(newCenters(i)-clusterCenters(i)) > 1e-5){
+				nextIter = true;
+				cout << "next iter" << endl;
+			}
+			clusterCenters(i) = newCenters(i);
+		}
+
+	}
+}
+
+VectorXd ParticleFilter::getClusterMap(){
+	return clusterMap;
+}
+
+MatrixXd ParticleFilter::getSetAsClusters(){
+	MatrixXd clusterSet(N, 3);
+	clusterSet.col(0) = particles.col(0);
+	clusterSet.col(1) = particles.col(1);
+	clusterSet.col(2) = clusterMap;
+	return clusterSet;
+}
 ParticleFilter::~ParticleFilter() {
 	// TODO Auto-generated destructor stub
 }

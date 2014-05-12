@@ -29,6 +29,7 @@ public:
 	State** readGTStatesBobot(const char *fname, int *firstFrameNum, int *lastFrameNum, int frameWidth, int frameHeight);
 	void writeNumbers(const char *fname, VectorXd numbers);
 	void saveCalculationResult(const char *fName, CalculationResult *res);
+	void saveWeigts(const char *fName, MatrixXd wgts);
 };
 
 #endif /* FILEPROCESSOR_H_ */

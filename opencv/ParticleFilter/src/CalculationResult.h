@@ -26,10 +26,14 @@ public:
 	VectorXd getDists();
 	VectorXd getFrameNums();
 	double getAverageQuality();
+	void initWeights(int frameNum, int particlesNum);
+	void setWeightsForFrame(int f, VectorXd wgts);
+	MatrixXd getWeights();
 private:
 	VectorXd qualityIndex;
 	VectorXd frameNum;
 	VectorXd dists;
+	MatrixXd weights;
 	double avgQuality;
 };
 
