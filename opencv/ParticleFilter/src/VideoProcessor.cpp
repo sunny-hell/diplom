@@ -80,8 +80,10 @@ void VideoProcessor::processVideo(){
 		rectangle(frame, states[0]->getRect(), Scalar(0,255,0,0));
 	}
 	Histogramm* templateHist = new Histogramm(templObjHsv, 50, 60);
-
-
+	//fp->writeHSHist("firstFrameHist.txt", templateHist);
+	//imshow(winName, frame);
+	//waitKey(3);
+	//return;
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);

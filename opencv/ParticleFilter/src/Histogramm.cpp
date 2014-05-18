@@ -27,7 +27,6 @@ Histogramm::Histogramm(Mat img, int hBins, int sBins){
 	normalize( this->hist, this->hist, 0, 1, NORM_MINMAX, -1, Mat() );
 
 }
-
 Histogramm::~Histogramm() {
 	// TODO Auto-generated destructor stub
 	hist = MatND();

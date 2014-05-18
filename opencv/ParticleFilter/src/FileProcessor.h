@@ -16,7 +16,8 @@
 #include <Eigen/Dense>
 #include "State.h"
 #include "CalculationResult.h"
-
+#include "Histogramm.h"
+#include "config.h"
 using namespace std;
 using namespace Eigen;
 
@@ -30,6 +31,8 @@ public:
 	void writeNumbers(const char *fname, VectorXd numbers);
 	void saveCalculationResult(const char *fName, CalculationResult *res);
 	void saveWeigts(const char *fName, MatrixXd wgts);
+	void writeHSHist(const char *fname, Histogramm *hist);
+	struct Config readConfig(const char *fNameConfig);
 };
 
 #endif /* FILEPROCESSOR_H_ */

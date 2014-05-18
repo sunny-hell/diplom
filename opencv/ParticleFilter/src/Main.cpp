@@ -48,11 +48,13 @@ int main(int ac, char** av)
 */
 
 
-	//double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
-	double devs[8] = {10, 10, 0.05, 0.1, 1, 1, 0.005, 0.01};
+	double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
+
+	//FileProcessor *fp = new FileProcessor();
+	//double devs[8] = {10, 10, 0.05, 0.1, 1, 1, 0.005, 0.01};
 
 	try{
-		VideoProcessor *processor = new VideoProcessor("..\\..\\..\\video\\Vid_I_person_crossing.avi", "..\\..\\..\\gt\\bobot\\Vid_I_person_crossing.txt", "", "..\\results\\Vid_I_person_crossing_na.txt", "bobot", devs, true);
+		VideoProcessor *processor = new VideoProcessor("..\\..\\videos\\movie10.mjpeg", "..\\..\\gt\\ferrari\\movie10.txt", "..\\..\\gt\\ferrari\\ref_hist_10.jpg", "results\\movie10_non_adaptive.txt", "ferrari", devs, false);
 		processor->setFileNameForWeights("..\\results\\vidI_wgts.txt");
 		processor->processVideo();
 	}

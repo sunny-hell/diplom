@@ -111,3 +111,51 @@ void FileProcessor::saveWeigts(const char *fName, MatrixXd wgts){
 	}
 	outfile.close();
 }
+
+void FileProcessor::writeHSHist(const char *fName, Histogramm *hist){
+	ofstream outfile;
+	outfile.open(fName);
+	cout << "writing hist.." << hist->hBins << " " << hist->sBins << " " << fName << endl;
+	for (int h=0; h < hist->hBins; h++){
+		for (int s=0; s<hist->sBins; s++){
+			outfile << hist->hist.at<float>(h,s) << '\t';
+		}
+		outfile << '\n';
+	}
+	outfile.close();
+}
+
+struct Config FileProcessor::readConfig(const char *fName){
+	struct Config cnf;
+	/*
+	ifstream inputFile;
+	inputFile.open(fName, ifstream::in);
+	string line;
+	const char* key;
+	const char* value;
+	while (getline(inputFile, line)){
+		istringstream iss(line);
+		iss >> key >> value;
+		if (strcmp(key, "srcVideo") == 0)
+			cnf.srcVideo = value;
+		else if (strcmp(key, "srcGT") == 0)
+			cnf.srcGT = value;
+		else if (strcmp(key, "srcHist") == 0)
+			cnf.srcHist = value;
+		else if (strcmp(key, "resName") == 0)
+			cnf.res = value;
+		else if (strcmp(key, "gtType") == 0)
+			cnf.gtTag = value;
+		else if (strcmp(key, "adaptive") == 0)
+			cnf.isAdaptive = (strcmp(value, "true")==0);
+
+
+		}
+	}
+	//istringstream iss(line);
+
+	//inputFile.close();
+	 *
+	 */
+	return cnf;
+}
