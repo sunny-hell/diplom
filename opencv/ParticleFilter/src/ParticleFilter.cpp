@@ -104,6 +104,25 @@ void ParticleFilter::prepareFirstSet(Rect r){
 	estimatedState = r;
 }
 
+void ParticleFilter::prepareFirstSetRandom(Rect r, double w, double h){
+	mt19937 mt_generator;
+	mt_generator.seed( time(NULL) );
+	uniform_real_distribution<double> ux(0.0, 1.0);
+	uniform_real_distribution<double> uy(0.0, 1.0);
+	double weight = 1.0/N;
+	particles.block(0, 4, N, 4).setZero();
+	particles.col(2).setConstant(r.width);
+	particles.col(3).setConstant(r.height);
+	particles.col(8).setConstant(weight);
+	particles.col(9).setLinSpaced(1, N) * weight;
+	for (int i=0; i<N; i++){
+		double x = w * ux(mt_generator);
+		double y = h * uy(mt_generator);
+		particles(i,0) = x;
+		particles(i,1) = y;
+	}
+	estimateState();
+}
 // представление частиц в виде описывающих прямоугольников
 Rect* ParticleFilter::getSetAsRects(){
 	Rect* rects = new Rect[N];

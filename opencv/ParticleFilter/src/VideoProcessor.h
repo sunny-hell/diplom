@@ -19,6 +19,7 @@
 #include "Histogramm.h"
 #include "ParticleFilter.h"
 #include "CalculationResult.h"
+#include "config.h"
 
 using namespace std;
 
@@ -26,9 +27,11 @@ class VideoProcessor {
 public:
 	VideoProcessor();
 	VideoProcessor(const char *videoFile, const char *gtFile, const char *refHistFile,  const char *resFile, const char *gtType,  double devs[], bool adaptive);
+	VideoProcessor(struct Config *cnf);
 	virtual ~VideoProcessor();
 
 	void processVideo();
+	void estimateTimeToDetect();
 	void setFileNameForWeights(const char* fName);
 private:
 	const char *fNameVideo;
@@ -43,6 +46,7 @@ private:
 	double devs[8];
 	bool adaptive;
 	void shiftToFrame(int frameNum);
+	void prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height, Histogramm *templateHist, Mat *frame, Mat *hsvFrame);
 };
 
 #endif /* VIDEOPROCESSOR_H_ */

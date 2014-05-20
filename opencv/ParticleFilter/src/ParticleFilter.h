@@ -27,6 +27,7 @@ public:
 	virtual ~ParticleFilter();
 
 	void prepareFirstSet(Rect r);
+	void prepareFirstSetRandom(Rect r, double w, double h);
 	void iter(Mat frame, int k);
 	Rect* getSetAsRects();
 	Point* getSetAsPoints();

@@ -95,8 +95,8 @@ void FileProcessor::saveCalculationResult(const char *fName, CalculationResult *
 	for (int i = 0; i < N; i++){
 		outfile << frameNums(i) << '\t' << qualityIndex(i) << '\n';
 	}
-
 	outfile.close();
+
 }
 
 void FileProcessor::saveWeigts(const char *fName, MatrixXd wgts){
@@ -125,37 +125,69 @@ void FileProcessor::writeHSHist(const char *fName, Histogramm *hist){
 	outfile.close();
 }
 
-struct Config FileProcessor::readConfig(const char *fName){
-	struct Config cnf;
-	/*
+Config* FileProcessor::readConfig(const char *fName){
+	Config *cnf = new Config;
+
 	ifstream inputFile;
 	inputFile.open(fName, ifstream::in);
 	string line;
-	const char* key;
-	const char* value;
+
 	while (getline(inputFile, line)){
-		istringstream iss(line);
-		iss >> key >> value;
-		if (strcmp(key, "srcVideo") == 0)
-			cnf.srcVideo = value;
-		else if (strcmp(key, "srcGT") == 0)
-			cnf.srcGT = value;
-		else if (strcmp(key, "srcHist") == 0)
-			cnf.srcHist = value;
-		else if (strcmp(key, "resName") == 0)
-			cnf.res = value;
-		else if (strcmp(key, "gtType") == 0)
-			cnf.gtTag = value;
-		else if (strcmp(key, "adaptive") == 0)
-			cnf.isAdaptive = (strcmp(value, "true")==0);
+		if (line.compare("srcVideo") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->srcVideo = tmpLine; //line.c_str();
+			//cout << "srcVideo " << cnf.srcVideo << endl;
+		} else if (line.compare("srcGT") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->srcGT = tmpLine;
+			//cout << "srcGT " << cnf.srcGT << endl;
+		} else if (line.compare("srcHist") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->srcHist = tmpLine;
+			//cout << "srcHist " << cnf.srcHist << endl;
+		} else if (line.compare("resName") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->res = tmpLine;
+			//cout << "res " << cnf.res << endl;
+		} else if (line.compare("gtType") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->gtTag = tmpLine;
+			//cout << "gtType " << cnf.gtTag << endl;
+		} else if (line.compare("adaptive") == 0){
+			getline(inputFile, line);
+			cnf->isAdaptive = (line.compare("true") == 0);
 
-
+			//cout << "adaptive " << cnf.isAdaptive << endl;
+		} else if (line.compare("devs") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			//cout << "devs";
+			for (int i=0; i<8; i++){
+				iss >> cnf->devs[i];
+				//cout << " " << cnf->devs[i];
+			}
+			//cout << endl;
+			//iss.clear();
+		} else if (line.compare("resWeights") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->fNameWeights = tmpLine;
 		}
 	}
 	//istringstream iss(line);
 
-	//inputFile.close();
-	 *
-	 */
+	inputFile.close();
+
 	return cnf;
 }

@@ -15,7 +15,17 @@ struct Config{
 	const char *srcHist;
 	const char *res;
 	const char *gtTag;
+	const char *fNameWeights;
 	bool isAdaptive;
+
+	Config(){
+		srcVideo = NULL;
+		srcGT = NULL;
+		srcHist = NULL;
+		res = NULL;
+		gtTag = NULL;
+		fNameWeights = NULL;
+	}
 
 };
 

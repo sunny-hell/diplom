@@ -1,0 +1,14 @@
+srcVideo
+C:\Users\md\sunnyhell\diplom\diplom\video\movie01.mjpeg
+srcGT
+C:\Users\md\sunnyhell\diplom\diplom\gt\ferrari\movie01.txt
+srcHist
+C:\Users\md\sunnyhell\diplom\diplom\gt\ferrari\ref_hist.jpg
+resName
+C:\Users\md\sunnyhell\diplom\diplom\opencv\ParticleFilter\results\movie01_adaptive_randomFirstSet.txt
+gtType
+ferrari
+adaptive
+true
+devs
+15 15 0.1 0.1 1 1 0.01 0.01

@@ -32,7 +32,8 @@ public:
 	void saveCalculationResult(const char *fName, CalculationResult *res);
 	void saveWeigts(const char *fName, MatrixXd wgts);
 	void writeHSHist(const char *fname, Histogramm *hist);
-	struct Config readConfig(const char *fNameConfig);
+	Config *readConfig(const char *fNameConfig);
+
 };
 
 #endif /* FILEPROCESSOR_H_ */

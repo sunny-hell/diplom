@@ -30,6 +30,18 @@ VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const 
 	}
 }
 
+VideoProcessor::VideoProcessor(struct Config *cnf){
+	this->fNameVideo = cnf->srcVideo;
+	this->fNameGT = cnf->srcGT;
+	this->fNameRefHist = cnf->srcHist;
+	this->fNameResult = cnf->res;
+	this->gtType = cnf->gtTag;
+	this->adaptive = cnf->isAdaptive;
+	this->fNameWeights = cnf->fNameWeights;
+	for (int i=0; i<8; i++){
+		this->devs[i] = cnf->devs[i];
+	}
+}
 VideoProcessor::~VideoProcessor() {
 	// TODO Auto-generated destructor stub
 }
@@ -48,10 +60,57 @@ void VideoProcessor::shiftToFrame(int frameNum){
 	frame = Mat();
 }
 
-void VideoProcessor::processVideo(){
+void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height,
+									   Histogramm *templateHist, Mat *frame, Mat *hsvFrame){
+	FileProcessor *fp = new FileProcessor();
+	capture.open(fNameVideo);
+	*width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+	*height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+	if (strcmp(gtType, "ferrari") == 0){
+		states = fp->readGTStatesFerrari(fNameGT, firstFrame, lastFrame);
+	} else if (strcmp(gtType, "bobot") == 0){
+		states = fp->readGTStatesBobot(fNameGT, firstFrame, lastFrame, *width, *height);
+	}
+	shiftToFrame(*firstFrame-1);
+
+	capture >> *frame;
+	cvtColor(*frame, *hsvFrame, CV_RGB2HSV);
+	Mat templObj;
+	Mat templObjHsv;
+	if (fNameRefHist != NULL){
+		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
+		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
+	} else {
+		templObjHsv = Mat(*hsvFrame, states[0]->getRect());
+		rectangle(*frame, states[0]->getRect(), Scalar(0,255,0,0));
+	}
+	templateHist = new Histogramm(templObjHsv, 50, 60);
+	delete fp;
+}
+
+void VideoProcessor::estimateTimeToDetect(){
 	FileProcessor* fp = new FileProcessor();
 	int firstFrame, lastFrame;
 	capture.open(fNameVideo);
+	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+}
+
+void VideoProcessor::processVideo(){
+	FileProcessor* fp = new FileProcessor();
+	int firstFrame, lastFrame, width, height;
+	Histogramm* templateHist;
+	Mat frame, hsvFrame;
+	prepareToTracking(&firstFrame, &lastFrame, &width, &height, templateHist, &frame, &hsvFrame);
+	cout << "fnameVideo " << fNameVideo << endl;
+	string winName = "pf";
+	namedWindow(winName, CV_WINDOW_AUTOSIZE);
+	imshow(winName, frame);
+	waitKey(2000);
+	imshow(winName, hsvFrame);
+	waitKey(2000);
+	/*capture.open(fNameVideo);
 	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
 	cout << "width: " << width << endl;
@@ -72,7 +131,7 @@ void VideoProcessor::processVideo(){
 	cvtColor(frame, hsvFrame, CV_RGB2HSV);
 	Mat templObj;
 	Mat templObjHsv;
-	if (strlen(fNameRefHist) > 0 ){
+	if (fNameRefHist != NULL){
 		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
 		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
 	} else {
@@ -80,6 +139,7 @@ void VideoProcessor::processVideo(){
 		rectangle(frame, states[0]->getRect(), Scalar(0,255,0,0));
 	}
 	Histogramm* templateHist = new Histogramm(templObjHsv, 50, 60);
+	*/
 	//fp->writeHSHist("firstFrameHist.txt", templateHist);
 	//imshow(winName, frame);
 	//waitKey(3);
@@ -87,22 +147,25 @@ void VideoProcessor::processVideo(){
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
-	//pf->setClustersNum(2);
-	cout << "before prepare first set" << endl;
-	pf->prepareFirstSet(states[0]->getRect());
-	cout << "after prepare first set" << endl;
+
+
+	//pf->prepareFirstSet(states[0]->getRect());
+	pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
+	Point *points = pf->getSetAsPoints();
+	//Mat frame, hsvFrame;
+	for (int j=0; j<800; j++)
+		circle(frame, points[j],1, Scalar(0,255,0, 0));
+	imshow(winName, frame);
+	waitKey(200);
+	cout << "nFrames: " << nFrames << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);
 	//ostringstream oss;
 	CalculationResult *result = new CalculationResult();
 	result->initWeights(nFrames, 800);
 
-	vector<Scalar> colors(2);
-	colors[0] = Scalar(255, 0,0,0);
-	colors[1] = Scalar(0, 255,0,0);
-	MatrixXd clusters;
 	for (int i=firstFrame; i<=lastFrame; i++){
-		//cout << "frame " << i << endl;
+		cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
 		//pf->calcClusters();
 		result->setWeightsForFrame(i-firstFrame, pf->getWeights());
@@ -137,11 +200,13 @@ void VideoProcessor::processVideo(){
 	result->setQualityIndex(qualityIndex);
 	result->setFrameNums(firstFrame, lastFrame);
 	cout << result->getAverageQuality();
+
 	if (adaptive){
 		result->setDists(pf->dists);
 	}
+	//cout << "before save result: " << fNameResult << endl;
 	fp->saveCalculationResult(fNameResult, result);
-	if (strlen(fNameWeights) > 0){
+	if (fNameWeights != NULL){
 		fp->saveWeigts(fNameWeights, result->getWeights());
 	}
 	//double avgQuality = qualityIndex.sum() / nFrames;
