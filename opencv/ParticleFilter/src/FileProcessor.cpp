@@ -75,7 +75,7 @@ State** FileProcessor::readGTStatesBobot(const char *fname, int *firstFrameNum, 
 void FileProcessor::writeNumbers(const char *fname, VectorXd numbers){
 	ofstream outfile;
 	outfile.open(fname);
-	for (int i = 0; i < numbers.cols(); i++)
+	for (int i = 0; i < numbers.rows(); i++)
 	{
 		outfile << numbers(i) << '\t';
 	}

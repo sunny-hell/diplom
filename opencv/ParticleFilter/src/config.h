@@ -19,12 +19,12 @@ struct Config{
 	bool isAdaptive;
 
 	Config(){
-		srcVideo = NULL;
-		srcGT = NULL;
-		srcHist = NULL;
-		res = NULL;
-		gtTag = NULL;
-		fNameWeights = NULL;
+		srcVideo = "";
+		srcGT = "";
+		srcHist = "";
+		res = "";
+		gtTag = "";
+		fNameWeights = "";
 	}
 
 };

@@ -46,31 +46,19 @@ ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHis
 // определить состояние объекта из набора частиц
 void ParticleFilter::estimateState(){
 	double x=0.0, y=0.0,w=0.0,h=0.0;
-	double maxMean = 0.0;
-	int maxIndex = 0;
-	if (clusterNum > 0){
-		for (int i=0; i<clusterNum; i++){
-			if (clusterCenters(i) > maxMean){
-				maxMean = clusterCenters(i);
-				maxIndex = i;
-			}
-		}
-	}
-	bool withinCluster = clusterNum > 0 && clusters[maxIndex].size() > N/4;
+
 
 	for (int i=0; i<N; i++){
-		if (withinCluster && clusterMap(i) != maxIndex)
-			continue;
 		double wgt = particles(i,8);
 		x += particles(i,0)*wgt;
 		y += particles(i,1)*wgt;
 		w += particles(i,2)*wgt;
 		h += particles(i,3)*wgt;
 	}
-	if (x < 0) x=0;
-	if (y < 0) y=0;
-	if (w < 1) w=1;
-	if (h < 1) h=1;
+	x = fmax(0, fmin(x, frameWidth-1));
+	y = fmax(0, fmin(y, frameHeight-1));
+	w = fmax(1, fmin(w, frameWidth-x-1));
+	h = fmax(1, fmin(h, frameHeight-y-1));
 	estimatedState = Rect(x, y, w, h);
 }
 
@@ -163,7 +151,7 @@ void ParticleFilter::setClustersNum(int clNum){
 }
 // итерация алгоритма
 void ParticleFilter::iter(Mat frame, int k){
-	//cout << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
+	cout << "estState: " << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
 	Mat estObj(frame, estimatedState);
 	MatrixXd curSet(N, 10);
 	curSet = particles;
@@ -172,10 +160,8 @@ void ParticleFilter::iter(Mat frame, int k){
 	double dist;
 	// adaptive part
 	if (adaptive){
-		//h = new Histogramm(estObj, hBins, sBins);
 		dist = h->compare(templateHist);
 		dists(k) = dist;
-		//cout << "dist: " << dist << endl;
 		double sigmoid = (erf(alpha*(dist-beta)) + 1.0) / 2.0;
 		VectorXd devs(8);
 		double minHW = fmin(estimatedState.width, estimatedState.height);
@@ -188,9 +174,6 @@ void ParticleFilter::iter(Mat frame, int k){
 		noiseGen->setCovar(initialDevs);
 	}
 
-	//cout << "after devs generated" << endl;
-
-
 	particles.setZero(N, 10);
 
 	mt19937 mt_generator;
@@ -199,31 +182,21 @@ void ParticleFilter::iter(Mat frame, int k){
 
 	for (int i=0; i<N; i++){
 		double r = u(mt_generator);
-
 		int j;
 		for (j=0; j<N; j++){
 			if (curSet(j,9) >= r){
-
 				break;
 			}
 		}
-		//cout << "j=" << j << endl;
 		VectorXd v = noiseGen->nextSample().transpose();
-
 		MatrixXd newParticle = A * curSet.block(j,0,1,8).transpose() + v;
-
 		particles.block(i,0,1,8) = newParticle.transpose();
-
 		particles(i,0) = fmax(0, fmin(particles(i,0), frameWidth-1));
 		particles(i,1) = fmax(0, fmin(particles(i,1), frameHeight-1));
 		particles(i,2) = fmax(1, fmin(particles(i,2), frameWidth-particles(i,0)-1));
 		particles(i,3) = fmax(1, fmin(particles(i,3), frameHeight-particles(i,1)-1));
-
-		//cout << particles(i,0) << " " << particles(i,1) << " " << particles(i,2) << " " << particles(i,3) << endl;
 		Mat curMat(frame, Rect(particles(i,0), particles(i,1), particles(i,2), particles(i,3)));
-
 		h->clear();
-		//cout << "after h clear" << endl;
 		h = new Histogramm(curMat, hBins, sBins);
 		dist = h->compare(templateHist);
 		particles(i,8) = wgtCoeff*exp(-dist/0.02);

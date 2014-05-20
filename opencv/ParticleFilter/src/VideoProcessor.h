@@ -45,8 +45,9 @@ private:
 	VideoCapture capture;
 	double devs[8];
 	bool adaptive;
+	Histogramm *templateHist;
 	void shiftToFrame(int frameNum);
-	void prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height, Histogramm *templateHist, Mat *frame, Mat *hsvFrame);
+	void prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height, Mat *frame, Mat *hsvFrame);
 };
 
 #endif /* VIDEOPROCESSOR_H_ */

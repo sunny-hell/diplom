@@ -61,7 +61,7 @@ void VideoProcessor::shiftToFrame(int frameNum){
 }
 
 void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height,
-									   Histogramm *templateHist, Mat *frame, Mat *hsvFrame){
+									   Mat *frame, Mat *hsvFrame){
 	FileProcessor *fp = new FileProcessor();
 	capture.open(fNameVideo);
 	*width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
@@ -72,12 +72,11 @@ void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *wid
 		states = fp->readGTStatesBobot(fNameGT, firstFrame, lastFrame, *width, *height);
 	}
 	shiftToFrame(*firstFrame-1);
-
 	capture >> *frame;
 	cvtColor(*frame, *hsvFrame, CV_RGB2HSV);
 	Mat templObj;
 	Mat templObjHsv;
-	if (fNameRefHist != NULL){
+	if (strlen(fNameRefHist) > 0){
 		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
 		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
 	} else {
@@ -89,57 +88,47 @@ void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *wid
 }
 
 void VideoProcessor::estimateTimeToDetect(){
-	FileProcessor* fp = new FileProcessor();
-	int firstFrame, lastFrame;
-	capture.open(fNameVideo);
-	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+	int firstFrame, lastFrame, width, height;
+	Mat frame, hsvFrame;
+	//prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
+	VectorXd framesToInit(20);
+	for (int k=0; k<20; k++){
+		cout << "k=" << k << endl;
+		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
+		int nFrames = lastFrame-firstFrame+1;
+		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
+		pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 
+		int i;
+		for (i=firstFrame; i<=lastFrame; i++){
+			pf->iter(hsvFrame, i-firstFrame);
+			Rect estRect = pf->getEstimatedState();
+			double qualityIndex = states[i-firstFrame]->getQualityIndex(estRect);
+			if (qualityIndex >= 0.3){
+				break;
+			}
+		}
+		framesToInit(k) = i-firstFrame;
+		cout << "init time: " << i-firstFrame << endl;
+
+	}
+	FileProcessor *fp = new FileProcessor();
+	fp->writeNumbers("..\\..\\results\\framesToInit.txt", framesToInit);
+	double avgFrames = framesToInit.mean();
+	cout << "avgFrames: " << avgFrames << endl;
 }
 
 void VideoProcessor::processVideo(){
 	FileProcessor* fp = new FileProcessor();
 	int firstFrame, lastFrame, width, height;
-	Histogramm* templateHist;
+
 	Mat frame, hsvFrame;
-	prepareToTracking(&firstFrame, &lastFrame, &width, &height, templateHist, &frame, &hsvFrame);
-	cout << "fnameVideo " << fNameVideo << endl;
-	string winName = "pf";
-	namedWindow(winName, CV_WINDOW_AUTOSIZE);
-	imshow(winName, frame);
-	waitKey(2000);
-	imshow(winName, hsvFrame);
-	waitKey(2000);
-	/*capture.open(fNameVideo);
-	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
-	cout << "width: " << width << endl;
-	cout << "height: " << height << endl;
-	if (strcmp(gtType, "ferrari") == 0){
-		states = fp->readGTStatesFerrari(fNameGT, &firstFrame, &lastFrame);
-	} else if (strcmp(gtType, "bobot") == 0){
-		states = fp->readGTStatesBobot(fNameGT, &firstFrame, &lastFrame, width, height);
-	}
-	cout << "firstFrame: " << firstFrame << " lastFrame: " << lastFrame << endl;
+	prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
+	cout << width << " " << height << endl;
 	string winName = "pf";
 	namedWindow(winName, CV_WINDOW_AUTOSIZE);
 
-	shiftToFrame(firstFrame-1);
 
-	Mat frame, hsvFrame;
-	capture >> frame;
-	cvtColor(frame, hsvFrame, CV_RGB2HSV);
-	Mat templObj;
-	Mat templObjHsv;
-	if (fNameRefHist != NULL){
-		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
-		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
-	} else {
-		templObjHsv = Mat(hsvFrame, states[0]->getRect());
-		rectangle(frame, states[0]->getRect(), Scalar(0,255,0,0));
-	}
-	Histogramm* templateHist = new Histogramm(templObjHsv, 50, 60);
-	*/
 	//fp->writeHSHist("firstFrameHist.txt", templateHist);
 	//imshow(winName, frame);
 	//waitKey(3);
@@ -156,7 +145,7 @@ void VideoProcessor::processVideo(){
 	for (int j=0; j<800; j++)
 		circle(frame, points[j],1, Scalar(0,255,0, 0));
 	imshow(winName, frame);
-	waitKey(200);
+	waitKey(500);
 	cout << "nFrames: " << nFrames << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);
@@ -167,6 +156,7 @@ void VideoProcessor::processVideo(){
 	for (int i=firstFrame; i<=lastFrame; i++){
 		cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
+		cout << "afer iter: " << endl;
 		//pf->calcClusters();
 		result->setWeightsForFrame(i-firstFrame, pf->getWeights());
 		Rect estRect = pf->getEstimatedState();
@@ -206,7 +196,7 @@ void VideoProcessor::processVideo(){
 	}
 	//cout << "before save result: " << fNameResult << endl;
 	fp->saveCalculationResult(fNameResult, result);
-	if (fNameWeights != NULL){
+	if (strlen(fNameWeights) > 0){
 		fp->saveWeigts(fNameWeights, result->getWeights());
 	}
 	//double avgQuality = qualityIndex.sum() / nFrames;
