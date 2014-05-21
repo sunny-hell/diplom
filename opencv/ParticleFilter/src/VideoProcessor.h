@@ -40,6 +40,7 @@ private:
 	const char *fNameResult;
 	const char* gtType;
 	const char* fNameWeights;
+	const char* fNameFramesToInit;
 	//int process(VideoCapture& capture);
 	State **states;
 	VideoCapture capture;

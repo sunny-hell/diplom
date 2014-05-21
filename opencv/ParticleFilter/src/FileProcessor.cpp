@@ -75,6 +75,7 @@ State** FileProcessor::readGTStatesBobot(const char *fname, int *firstFrameNum, 
 void FileProcessor::writeNumbers(const char *fname, VectorXd numbers){
 	ofstream outfile;
 	outfile.open(fname);
+	cout << "rows: " << numbers.rows() << " cols: " << numbers.cols() << endl;
 	for (int i = 0; i < numbers.rows(); i++)
 	{
 		outfile << numbers(i) << '\t';
@@ -183,6 +184,11 @@ Config* FileProcessor::readConfig(const char *fName){
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
 			memcpy(tmpLine, line.c_str(), line.length()+1);
 			cnf->fNameWeights = tmpLine;
+		} else if (line.compare("framesToInitName") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->fNameFramesToInit = tmpLine;
 		}
 	}
 	//istringstream iss(line);

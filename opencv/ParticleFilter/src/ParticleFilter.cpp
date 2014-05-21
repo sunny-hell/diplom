@@ -151,7 +151,7 @@ void ParticleFilter::setClustersNum(int clNum){
 }
 // итерация алгоритма
 void ParticleFilter::iter(Mat frame, int k){
-	cout << "estState: " << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
+	//cout << "estState: " << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
 	Mat estObj(frame, estimatedState);
 	MatrixXd curSet(N, 10);
 	curSet = particles;

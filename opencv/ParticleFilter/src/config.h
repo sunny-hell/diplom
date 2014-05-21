@@ -16,6 +16,7 @@ struct Config{
 	const char *res;
 	const char *gtTag;
 	const char *fNameWeights;
+	const char *fNameFramesToInit;
 	bool isAdaptive;
 
 	Config(){
@@ -25,6 +26,7 @@ struct Config{
 		res = "";
 		gtTag = "";
 		fNameWeights = "";
+		fNameFramesToInit = "";
 	}
 
 };

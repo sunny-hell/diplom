@@ -38,6 +38,7 @@ VideoProcessor::VideoProcessor(struct Config *cnf){
 	this->gtType = cnf->gtTag;
 	this->adaptive = cnf->isAdaptive;
 	this->fNameWeights = cnf->fNameWeights;
+	this->fNameFramesToInit = cnf->fNameFramesToInit;
 	for (int i=0; i<8; i++){
 		this->devs[i] = cnf->devs[i];
 	}
@@ -113,7 +114,7 @@ void VideoProcessor::estimateTimeToDetect(){
 
 	}
 	FileProcessor *fp = new FileProcessor();
-	fp->writeNumbers("..\\..\\results\\framesToInit.txt", framesToInit);
+	fp->writeNumbers(fNameFramesToInit, framesToInit);
 	double avgFrames = framesToInit.mean();
 	cout << "avgFrames: " << avgFrames << endl;
 }
