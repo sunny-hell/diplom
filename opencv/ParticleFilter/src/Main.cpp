@@ -48,19 +48,19 @@ int main(int ac, char** av)
 */
 
 
-	double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
+	//double devs[8] = {15, 15, 0.1, 0.1, 1, 1, 0.01, 0.01};
 
 	//FileProcessor *fp = new FileProcessor();
 	//double devs[8] = {10, 10, 0.05, 0.1, 1, 1, 0.005, 0.01};
 
 	try{
 		FileProcessor *fp = new FileProcessor();
-		Config *cnf = fp->readConfig("..\\config.txt");
+		Config *cnf = fp->readConfig("config.txt");
 	//	VideoProcessor *processor = new VideoProcessor("..\\..\\videos\\movie10.mjpeg", "..\\..\\gt\\ferrari\\movie10.txt", "..\\..\\gt\\ferrari\\ref_hist_10.jpg", "results\\movie10_non_adaptive.txt", "ferrari", devs, false);
 		VideoProcessor *processor = new VideoProcessor(cnf);
 	//	processor->setFileNameForWeights("..\\results\\vidI_wgts.txt");
-		// processor->processVideo();
-		processor->estimateTimeToDetect();
+		processor->processVideo();
+		//processor->estimateTimeToDetect();
 		delete cnf;
 	}
 	catch (exception& e){

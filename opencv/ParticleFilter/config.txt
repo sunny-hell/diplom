@@ -1,16 +1,16 @@
 srcVideo
-..\..\..\video\movie07.mjpeg
+..\..\video\Vid_B_cup.avi
 srcGT
-..\..\..\gt\ferrari\movie07.txt
-srcHist
-..\..\..\gt\ferrari\ref_hist.jpg
+..\..\gt\bobot\Vid_B_cup.txt
+//srcHist
+//..\..\gt\ferrari\ref_hist.jpg
 resName
-..\..\..\results\movie07_adaptive_randomFirstSet.txt
-framesToInitName
-..\..\..\results\framesToInit_movie07_nonadaptive.txt
+..\..\results\vidB_adaptive.txt
+//framesToInitName
+//..\..\results\framesToInit_vidF_nonadaptive.txt
 gtType
-ferrari
+bobot
 adaptive
-false
+true
 devs
 15 15 0.1 0.1 1 1 0.01 0.01

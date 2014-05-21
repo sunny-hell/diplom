@@ -139,8 +139,8 @@ void VideoProcessor::processVideo(){
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 
 
-	//pf->prepareFirstSet(states[0]->getRect());
-	pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
+	pf->prepareFirstSet(states[0]->getRect());
+	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 	Point *points = pf->getSetAsPoints();
 	//Mat frame, hsvFrame;
 	for (int j=0; j<800; j++)
