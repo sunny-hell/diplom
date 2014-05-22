@@ -39,6 +39,7 @@ VideoProcessor::VideoProcessor(struct Config *cnf){
 	this->adaptive = cnf->isAdaptive;
 	this->fNameWeights = cnf->fNameWeights;
 	this->fNameFramesToInit = cnf->fNameFramesToInit;
+	this->iterationsCount = cnf->iterationsCount;
 	for (int i=0; i<8; i++){
 		this->devs[i] = cnf->devs[i];
 	}
@@ -92,31 +93,41 @@ void VideoProcessor::estimateTimeToDetect(){
 	int firstFrame, lastFrame, width, height;
 	Mat frame, hsvFrame;
 	//prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
-	VectorXd framesToInit(20);
-	for (int k=0; k<20; k++){
+	VectorXd framesToInit(iterationsCount);
+	for (int k=0; k<iterationsCount; k++){
 		cout << "k=" << k << endl;
 		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 		int nFrames = lastFrame-firstFrame+1;
 		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 		pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 
-		int i;
+		int i, framesCount;
 		for (i=firstFrame; i<=lastFrame; i++){
 			pf->iter(hsvFrame, i-firstFrame);
 			Rect estRect = pf->getEstimatedState();
 			double qualityIndex = states[i-firstFrame]->getQualityIndex(estRect);
 			if (qualityIndex >= 0.3){
+				framesCount = i;
 				break;
 			}
-		}
-		framesToInit(k) = i-firstFrame;
-		cout << "init time: " << i-firstFrame << endl;
+			if (i>nFrames/2){
+				framesCount = nFrames;
+				break;
+			}
 
+		}
+		framesToInit(k) = framesCount-firstFrame;
+		cout << "init time: " << framesCount-firstFrame << endl;
+		delete pf;
+		capture.release();
 	}
 	FileProcessor *fp = new FileProcessor();
 	fp->writeNumbers(fNameFramesToInit, framesToInit);
 	double avgFrames = framesToInit.mean();
 	cout << "avgFrames: " << avgFrames << endl;
+	delete fp;
+
+
 }
 
 void VideoProcessor::processVideo(){

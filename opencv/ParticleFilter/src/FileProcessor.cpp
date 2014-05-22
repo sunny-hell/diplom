@@ -78,7 +78,7 @@ void FileProcessor::writeNumbers(const char *fname, VectorXd numbers){
 	cout << "rows: " << numbers.rows() << " cols: " << numbers.cols() << endl;
 	for (int i = 0; i < numbers.rows(); i++)
 	{
-		outfile << numbers(i) << '\t';
+		outfile << numbers(i) << '\n';
 	}
 
 	outfile.close();
@@ -178,7 +178,7 @@ Config* FileProcessor::readConfig(const char *fName){
 				//cout << " " << cnf->devs[i];
 			}
 			//cout << endl;
-			//iss.clear();
+			iss.clear();
 		} else if (line.compare("resWeights") == 0){
 			getline(inputFile, line);
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
@@ -189,6 +189,11 @@ Config* FileProcessor::readConfig(const char *fName){
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
 			memcpy(tmpLine, line.c_str(), line.length()+1);
 			cnf->fNameFramesToInit = tmpLine;
+		} else if (line.compare("iterations") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->iterationsCount;
+			iss.clear();
 		}
 	}
 	//istringstream iss(line);

@@ -173,7 +173,7 @@ void ParticleFilter::iter(Mat frame, int k){
 	} else {
 		noiseGen->setCovar(initialDevs);
 	}
-
+	estObj = Mat();
 	particles.setZero(N, 10);
 
 	mt19937 mt_generator;
@@ -201,6 +201,7 @@ void ParticleFilter::iter(Mat frame, int k){
 		dist = h->compare(templateHist);
 		particles(i,8) = wgtCoeff*exp(-dist/0.02);
 		particles(i,9) = (i > 0) ? particles(i,8) + particles(i-1, 9) : particles(i,8);
+		curMat = Mat();
 	}
 
 	particles.col(8) = particles.col(8) / particles(N-1, 9);

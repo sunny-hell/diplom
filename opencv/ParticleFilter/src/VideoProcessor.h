@@ -41,6 +41,7 @@ private:
 	const char* gtType;
 	const char* fNameWeights;
 	const char* fNameFramesToInit;
+	int iterationsCount;
 	//int process(VideoCapture& capture);
 	State **states;
 	VideoCapture capture;

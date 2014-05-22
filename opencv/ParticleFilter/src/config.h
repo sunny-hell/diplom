@@ -17,6 +17,7 @@ struct Config{
 	const char *gtTag;
 	const char *fNameWeights;
 	const char *fNameFramesToInit;
+	int iterationsCount;
 	bool isAdaptive;
 
 	Config(){
@@ -27,6 +28,7 @@ struct Config{
 		gtTag = "";
 		fNameWeights = "";
 		fNameFramesToInit = "";
+		iterationsCount = 0;
 	}
 
 };
