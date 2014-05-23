@@ -101,18 +101,20 @@ void FileProcessor::saveCalculationResult(const char *fName, CalculationResult *
 }
 
 void FileProcessor::saveWeigts(const char *fName, MatrixXd wgts){
-	ofstream outfile;
-	outfile.open(fName);
-	for (int i=0; i<wgts.rows(); i++){
-		for (int j=0; j<wgts.cols(); j++){
-			outfile << wgts(i,j) << '\t';
+	writeMatrix(fName, wgts);
+}
 
+void FileProcessor::writeMatrix(const char* fname, MatrixXd m){
+	ofstream outfile;
+	outfile.open(fname);
+	for (int i=0; i<m.rows(); i++){
+		for (int j=0; j<m.cols(); j++){
+			outfile << m(i,j) << '\t';
 		}
 		outfile << '\n';
 	}
 	outfile.close();
 }
-
 void FileProcessor::writeHSHist(const char *fName, Histogramm *hist){
 	ofstream outfile;
 	outfile.open(fName);
@@ -194,6 +196,11 @@ Config* FileProcessor::readConfig(const char *fName){
 			istringstream iss(line);
 			iss >> cnf->iterationsCount;
 			iss.clear();
+		} else if (line.compare("estimationsName") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->fNameQualityEstimation = tmpLine;
 		}
 	}
 	//istringstream iss(line);

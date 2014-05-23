@@ -72,23 +72,9 @@ void ParticleFilter::prepareFirstSet(Rect r){
 	mt_generator.seed( time(NULL) );
 	uniform_real_distribution<double> ux(0.0, 1.0);
 	uniform_real_distribution<double> uy(0.0, 1.0);
-	double minX = r.x-r.width/2.0;
-	double maxX = r.x + 1.5*r.width;
-	double minY = r.y-r.height/2.0;
-	double maxY = r.y + 1.5*r.height;
-	double weight = 1.0/N;
-	particles.block(0, 4, N, 4).setZero();
-	particles.col(2).setConstant(r.width);
-	particles.col(3).setConstant(r.height);
-	particles.col(8).setConstant(weight);
-	particles.col(9).setLinSpaced(1, N) * weight;
-	for (int i=0; i<N; i++){
-		double x = minX + (maxX - minX) * ux(mt_generator);
-		double y = minY + (maxY - minY) * uy(mt_generator);
-		particles(i,0) = x;
-		particles(i,1) = y;
+	Point *p = new Point(r.x, r.y);
+	prepareFirstSetAtPoint(r,p);
 
-	}
 	estimatedState = r;
 }
 
@@ -106,6 +92,30 @@ void ParticleFilter::prepareFirstSetRandom(Rect r, double w, double h){
 	for (int i=0; i<N; i++){
 		double x = w * ux(mt_generator);
 		double y = h * uy(mt_generator);
+		particles(i,0) = x;
+		particles(i,1) = y;
+	}
+	estimateState();
+}
+
+void ParticleFilter::prepareFirstSetAtPoint(Rect r, Point *p){
+	mt19937 mt_generator;
+	mt_generator.seed( time(NULL) );
+	uniform_real_distribution<double> ux(0.0, 1.0);
+	uniform_real_distribution<double> uy(0.0, 1.0);
+	double minX = p->x-r.width/2.0;
+	double maxX = p->x + 1.5*r.width;
+	double minY = p->y-r.height/2.0;
+	double maxY = p->y + 1.5*r.height;
+	double weight = 1.0/N;
+	particles.block(0, 4, N, 4).setZero();
+	particles.col(2).setConstant(r.width);
+	particles.col(3).setConstant(r.height);
+	particles.col(8).setConstant(weight);
+	particles.col(9).setLinSpaced(1, N) * weight;
+	for (int i=0; i<N; i++){
+		double x = minX + (maxX - minX) * ux(mt_generator);
+		double y = minY + (maxY - minY) * uy(mt_generator);
 		particles(i,0) = x;
 		particles(i,1) = y;
 	}

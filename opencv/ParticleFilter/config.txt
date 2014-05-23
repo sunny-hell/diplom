@@ -1,18 +1,18 @@
 srcVideo
-..\..\..\video\movie07.mjpeg
+..\..\video\movie07.mjpeg
 srcGT
-..\..\..\gt\ferrari\movie07.txt
+..\..\gt\ferrari\movie07.txt
 srcHist
-..\..\..\gt\ferrari\ref_hist_10.jpg
+..\..\gt\ferrari\ref_hist_10.jpg
 //resName
 //..\..\..\results\movie07_adaptive.txt
 framesToInitName
-..\..\..\results\framesToInit_movie07_nonadaptive_20_2.txt
+..\..\results\framesToInit_movie07_adaptive_100_point.txt
 gtType
 ferrari
 adaptive
-false
+true
 devs
-15 15 0.1 0.1 1 1 0.01 0.01
+15 15 1.5 1.5 1 1 0.1 0.1
 iterations
-20
+100

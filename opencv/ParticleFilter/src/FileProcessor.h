@@ -32,6 +32,7 @@ public:
 	void saveCalculationResult(const char *fName, CalculationResult *res);
 	void saveWeigts(const char *fName, MatrixXd wgts);
 	void writeHSHist(const char *fname, Histogramm *hist);
+	void writeMatrix(const char *fname, MatrixXd m);
 	Config *readConfig(const char *fNameConfig);
 
 };

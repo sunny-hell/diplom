@@ -32,6 +32,7 @@ public:
 
 	void processVideo();
 	void estimateTimeToDetect();
+	void estimateQuality();
 	void setFileNameForWeights(const char* fName);
 private:
 	const char *fNameVideo;
@@ -41,6 +42,7 @@ private:
 	const char* gtType;
 	const char* fNameWeights;
 	const char* fNameFramesToInit;
+	const char* fNameQualityEstimation;
 	int iterationsCount;
 	//int process(VideoCapture& capture);
 	State **states;

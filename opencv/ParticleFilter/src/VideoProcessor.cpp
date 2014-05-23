@@ -40,6 +40,7 @@ VideoProcessor::VideoProcessor(struct Config *cnf){
 	this->fNameWeights = cnf->fNameWeights;
 	this->fNameFramesToInit = cnf->fNameFramesToInit;
 	this->iterationsCount = cnf->iterationsCount;
+	this->fNameQualityEstimation = cnf->fNameQualityEstimation;
 	for (int i=0; i<8; i++){
 		this->devs[i] = cnf->devs[i];
 	}
@@ -89,6 +90,55 @@ void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *wid
 	delete fp;
 }
 
+void VideoProcessor::estimateQuality(){
+	int firstFrame, lastFrame, width, height;
+	Mat frame, hsvFrame;
+	MatrixXd qualityIndexTotal(iterationsCount, 4);
+	for (int k=0; k<iterationsCount; k++){
+		cout << "k=" << k << endl;
+		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
+		int nFrames = lastFrame-firstFrame+1;
+		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
+		pf->prepareFirstSet(states[0]->getRect());
+		int tk=0, tst=firstFrame, tsum=0, Msf=0;
+		VectorXd qualityIndex(nFrames);
+		VectorXd qualityIndexSF;
+		qualityIndexSF.setZero(nFrames);
+		for (int i=firstFrame; i<=lastFrame; i++){
+			pf->iter(hsvFrame, i-firstFrame);
+			Rect estRect = pf->getEstimatedState();
+		    qualityIndex(i-firstFrame) = states[i-firstFrame]->getQualityIndex(estRect);
+			if (qualityIndex(i-firstFrame) < 0.3){
+				if (i != firstFrame && qualityIndex(i-firstFrame-1) >= 0.3){
+					tst = i-firstFrame;
+				}
+				if (i == lastFrame){
+					tsum = tsum + i-firstFrame-tst;
+					tk = tk+1;
+				}
+			} else {
+
+				qualityIndexSF(Msf) = qualityIndex(i-firstFrame);
+				Msf++;
+				if (i > firstFrame && qualityIndex(i-firstFrame-1) < 0.3){
+					tsum = tsum + i-firstFrame-tst;
+					tk = tk+1;
+				}
+			}
+		}
+		qualityIndexTotal(k,1) = qualityIndex.mean();
+		qualityIndexTotal(k,2) = Msf;
+		qualityIndexTotal(k,3) = Msf > 0 ? qualityIndexSF.sum() / (double)Msf : 0;
+		qualityIndexTotal(k,4) = tk > 0 ? (double)tsum/(double)tk : 0;
+
+
+		delete pf;
+		capture.release();
+	}
+	FileProcessor *fp = new FileProcessor();
+	fp->writeMatrix(fNameQualityEstimation, qualityIndexTotal);
+	delete fp;
+}
 void VideoProcessor::estimateTimeToDetect(){
 	int firstFrame, lastFrame, width, height;
 	Mat frame, hsvFrame;
@@ -99,7 +149,8 @@ void VideoProcessor::estimateTimeToDetect(){
 		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 		int nFrames = lastFrame-firstFrame+1;
 		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
-		pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
+		Point *p = new Point(600, 100);
+		pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 
 		int i, framesCount;
 		for (i=firstFrame; i<=lastFrame; i++){
@@ -110,8 +161,8 @@ void VideoProcessor::estimateTimeToDetect(){
 				framesCount = i;
 				break;
 			}
-			if (i>nFrames/2){
-				framesCount = nFrames;
+			if (i>500){
+				framesCount = lastFrame;
 				break;
 			}
 
@@ -142,22 +193,22 @@ void VideoProcessor::processVideo(){
 
 
 	//fp->writeHSHist("firstFrameHist.txt", templateHist);
-	//imshow(winName, frame);
-	//waitKey(3);
+	//imshow(winName, hsvFrame);
+	//waitKey(500);
 	//return;
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 
-
-	pf->prepareFirstSet(states[0]->getRect());
+	Point *p = new Point(600, 100);
+	pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 	Point *points = pf->getSetAsPoints();
 	//Mat frame, hsvFrame;
 	for (int j=0; j<800; j++)
 		circle(frame, points[j],1, Scalar(0,255,0, 0));
 	imshow(winName, frame);
-	waitKey(500);
+	waitKey(1000);
 	cout << "nFrames: " << nFrames << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);
