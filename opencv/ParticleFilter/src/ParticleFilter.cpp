@@ -103,10 +103,10 @@ void ParticleFilter::prepareFirstSetAtPoint(Rect r, Point *p){
 	mt_generator.seed( time(NULL) );
 	uniform_real_distribution<double> ux(0.0, 1.0);
 	uniform_real_distribution<double> uy(0.0, 1.0);
-	double minX = p->x-r.width/2.0;
-	double maxX = p->x + 1.5*r.width;
-	double minY = p->y-r.height/2.0;
-	double maxY = p->y + 1.5*r.height;
+	double minX = p->x-20;//r.width/2.0;
+	double maxX = p->x+ 20;//1.5*r.width;
+	double minY = p->y-20;//r.height/2.0;
+	double maxY = p->y + 20;//1.5*r.height;
 	double weight = 1.0/N;
 	particles.block(0, 4, N, 4).setZero();
 	particles.col(2).setConstant(r.width);

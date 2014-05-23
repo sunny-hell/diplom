@@ -1,18 +1,20 @@
 srcVideo
-..\..\video\movie07.mjpeg
+..\..\..\video\Vid_F_person_fully_occluded.avi
 srcGT
-..\..\gt\ferrari\movie07.txt
-srcHist
-..\..\gt\ferrari\ref_hist_10.jpg
-//resName
-//..\..\..\results\movie07_adaptive.txt
-framesToInitName
-..\..\results\framesToInit_movie07_adaptive_100_point.txt
+..\..\..\gt\bobot\Vid_F_person_fully_occluded.txt
+//srcHist
+//..\..\..\gt\ferrari\ref_hist_10.jpg
+resName
+..\..\..\results\Seq_F_adaptive.txt
+//framesToInitName
+//..\..\..\results\framesToInit_movie07_adaptive_100_random.txt
+estimationsName
+..\..\..\results\estimation_SeqF_adaptive_20.txt
 gtType
-ferrari
+bobot
 adaptive
-true
+true	
 devs
-15 15 1.5 1.5 1 1 0.1 0.1
+20 20 0.1 0.1 2 2 0.01 0.01
 iterations
-100
+20

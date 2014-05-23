@@ -103,8 +103,10 @@ void VideoProcessor::estimateQuality(){
 		int tk=0, tst=firstFrame, tsum=0, Msf=0;
 		VectorXd qualityIndex(nFrames);
 		VectorXd qualityIndexSF;
+
 		qualityIndexSF.setZero(nFrames);
 		for (int i=firstFrame; i<=lastFrame; i++){
+
 			pf->iter(hsvFrame, i-firstFrame);
 			Rect estRect = pf->getEstimatedState();
 		    qualityIndex(i-firstFrame) = states[i-firstFrame]->getQualityIndex(estRect);
@@ -125,12 +127,16 @@ void VideoProcessor::estimateQuality(){
 					tk = tk+1;
 				}
 			}
+			frame = Mat();
+			capture >> frame;
+			cvtColor(frame, hsvFrame, CV_RGB2HSV);
 		}
-		qualityIndexTotal(k,1) = qualityIndex.mean();
-		qualityIndexTotal(k,2) = Msf;
-		qualityIndexTotal(k,3) = Msf > 0 ? qualityIndexSF.sum() / (double)Msf : 0;
-		qualityIndexTotal(k,4) = tk > 0 ? (double)tsum/(double)tk : 0;
 
+		qualityIndexTotal(k,0) = qualityIndex.mean();
+		qualityIndexTotal(k,1) = Msf;
+		qualityIndexTotal(k,2) = Msf > 0 ? qualityIndexSF.sum() / (double)Msf : 0;
+		qualityIndexTotal(k,3) = tk > 0 ? (double)tsum/(double)tk : 0;
+		cout << "avg quality " << qualityIndex.mean() << " Msf " << Msf << "avg quality Msf " <<  qualityIndexTotal(k,2) << " Tk " << qualityIndexTotal(k,3) << endl;
 
 		delete pf;
 		capture.release();
@@ -142,6 +148,8 @@ void VideoProcessor::estimateQuality(){
 void VideoProcessor::estimateTimeToDetect(){
 	int firstFrame, lastFrame, width, height;
 	Mat frame, hsvFrame;
+	string winName = "pf";
+	//namedWindow(winName, CV_WINDOW_AUTOSIZE);
 	//prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 	VectorXd framesToInit(iterationsCount);
 	for (int k=0; k<iterationsCount; k++){
@@ -149,22 +157,38 @@ void VideoProcessor::estimateTimeToDetect(){
 		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 		int nFrames = lastFrame-firstFrame+1;
 		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
-		Point *p = new Point(600, 100);
-		pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
-
+		//Point *p = new Point(600, 100);
+		pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
+		Rect estRect= pf->getEstimatedState();
 		int i, framesCount;
 		for (i=firstFrame; i<=lastFrame; i++){
+			/*
+			Point *points = pf->getSetAsPoints();
+				//Mat frame, hsvFrame;
+			for (int j=0; j<800; j++)
+				circle(frame, points[j],1, Scalar(0,255,0, 0));
+			rectangle(frame, estRect, Scalar(0,0,255,0));
+			imshow(winName, frame);
+			waitKey(300);
+*/
 			pf->iter(hsvFrame, i-firstFrame);
-			Rect estRect = pf->getEstimatedState();
+			estRect = pf->getEstimatedState();
 			double qualityIndex = states[i-firstFrame]->getQualityIndex(estRect);
 			if (qualityIndex >= 0.3){
 				framesCount = i;
 				break;
 			}
-			if (i>500){
+			/*
+			if (i-firstFrame>200){
 				framesCount = lastFrame;
 				break;
 			}
+			*/
+			frame = Mat();
+					//cout << "before frame captured" << endl;
+			capture >> frame;
+					//cout << "captured new frame" << endl;
+			cvtColor(frame, hsvFrame, CV_RGB2HSV);
 
 		}
 		framesToInit(k) = framesCount-firstFrame;
@@ -200,15 +224,18 @@ void VideoProcessor::processVideo(){
 	int nFrames = lastFrame-firstFrame+1;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 
-	Point *p = new Point(600, 100);
-	pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
+	//Point *p = new Point(600, 100);
+	//pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
+	pf->prepareFirstSet(states[0]->getRect());
 	Point *points = pf->getSetAsPoints();
 	//Mat frame, hsvFrame;
-	for (int j=0; j<800; j++)
+	/*for (int j=0; j<800; j++)
 		circle(frame, points[j],1, Scalar(0,255,0, 0));
+	rectangle(frame, pf->getEstimatedState(), Scalar(0,0,255,0));
 	imshow(winName, frame);
 	waitKey(1000);
+	*/
 	cout << "nFrames: " << nFrames << endl;
 	//State *estimatedStates[nFrames];
 	VectorXd qualityIndex(nFrames);

@@ -21,6 +21,7 @@ public:
 	virtual ~Histogramm();
 
 	MatND hist;
+	MatND rgbHist;
 	int hBins;
 	int sBins;
 
