@@ -222,9 +222,10 @@ void VideoProcessor::processVideo(){
 	//return;
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
+	cout << "is adaptive: " << adaptive << endl;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 
-	//Point *p = new Point(600, 100);
+	Point *p = new Point(600, 100);
 	//pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 	pf->prepareFirstSet(states[0]->getRect());
