@@ -1,0 +1,28 @@
+12:21:11 **** Rebuild of configuration Debug for project ParticleFilter ****
+Info: Internal Builder is used for build
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\ParticleFilter.o" "..\\src\\ParticleFilter.cpp" 
+..\src\ParticleFilter.cpp: In member function 'void ParticleFilter::calcClusters()':
+..\src\ParticleFilter.cpp:253:38: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+     for (int j=0; j<clusters[i].size(); j++){
+                                      ^
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\FileProcessor.o" "..\\src\\FileProcessor.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\WhiteNoiseGenerator.o" "..\\src\\WhiteNoiseGenerator.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\State.o" "..\\src\\State.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o ".metadata\\.plugins\\org.eclipse.cdt.make.core\\specs.o" "..\\.metadata\\.plugins\\org.eclipse.cdt.make.core\\specs.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\CalculationResult.o" "..\\src\\CalculationResult.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\BGSubstractor.o" "..\\src\\BGSubstractor.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\Histogramm.o" "..\\src\\Histogramm.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\RegionExtractor.o" "..\\src\\RegionExtractor.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\Main.o" "..\\src\\Main.cpp" 
+g++ "-IC:\\opencv\\opencv\\build\\include" "-IC:\\boost_1_55_0" "-IC:\\eigen-eigen-6b38706d90a9" -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -o "src\\VideoProcessor.o" "..\\src\\VideoProcessor.cpp" 
+..\src\VideoProcessor.cpp: In member function 'void VideoProcessor::processVideo()':
+..\src\VideoProcessor.cpp:230:9: warning: unused variable 'p' [-Wunused-variable]
+  Point *p = new Point(600, 100);
+         ^
+..\src\VideoProcessor.cpp:234:9: warning: unused variable 'points' [-Wunused-variable]
+  Point *points = pf->getSetAsPoints();
+         ^
+g++ "-LC:\\opencv\\opencv\\build\\lib" "-LC:\\opencv\\buildMinGW\\lib" -o ParticleFilter.exe "src\\WhiteNoiseGenerator.o" "src\\VideoProcessor.o" "src\\State.o" "src\\RegionExtractor.o" "src\\ParticleFilter.o" "src\\Main.o" "src\\Histogramm.o" "src\\FileProcessor.o" "src\\CalculationResult.o" "src\\BGSubstractor.o" ".metadata\\.plugins\\org.eclipse.cdt.make.core\\specs.o" -lopencv_core249 -lopencv_highgui249 -lopencv_imgproc249 -lopencv_ml249 -lopencv_video249 
+
+12:21:53 Build Finished (took 41s.997ms)
+

@@ -1,0 +1,20 @@
+srcVideo
+..\..\video\Vid_A_ball.avi
+srcGT
+..\..\gt\bobot\Vid_A_ball.txt
+//srcHist
+//..\..\..\gt\ferrari\ref_hist_10.jpg
+resName
+..\..\results\Seq_A_nonadaptive.txt
+//framesToInitName
+//..\..\..\results\framesToInit_movie07_adaptive_100_random.txt
+estimationsName
+..\..\results\estimation_SeqA_nonadaptive_20.txt
+gtType
+bobot
+adaptive
+false	
+devs
+15 15 0.1 0.1 1 1 0.01 0.01
+iterations
+20

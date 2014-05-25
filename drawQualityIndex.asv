@@ -1,0 +1,72 @@
+f = fopen('results\Seq_C_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 1);
+drawSubplot(x,y, 'Seq_C');
+title('С адаптацией');
+%%
+f = fopen('results\Seq_C_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 2);
+drawSubplot(x,y, 'Seq_C');
+title('Без адаптации');
+%%
+%%
+f = fopen('results\Seq_G_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 3);
+drawSubplot(x,y, 'Seq_G');
+%%
+
+f = fopen('results\Seq_G_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 4);
+drawSubplot(x,y, 'Seq_G');
+%%
+%%
+f = fopen('results\Seq_K_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 5);
+drawSubplot(x,y, 'Seq_K');
+%%
+f = fopen('results\Seq_K_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 6);
+drawSubplot(x,y, 'Seq_K');
+%%
+%%
+f = fopen('results\Seq_L_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 7);
+drawSubplot(x,y, 'Seq_L');
+%%
+f = fopen('results\Seq_L_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 8);
+drawSubplot(x,y, 'Seq_L');
+%%
+%%
+f = fopen('results\Seq_I_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 9);
+drawSubplot(x,y, 'Seq_I');
+%%
+f = fopen('results\Seq_I_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 10);
+drawSubplot(x,y, 'Seq_I');
+%%
+%%
+f = fopen('results\Seq_E_adaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 11);
+drawSubplot(x,y, 'Seq_E');
+%%
+f = fopen('results\Seq_E_nonadaptive.txt');
+[x,y] = readFile(f);
+subplot(6, 2, 12);
+drawSubplot(x,y, 'Seq_E');
+
+
+
+
+

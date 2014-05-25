@@ -59,9 +59,9 @@ int main(int ac, char** av)
 	//	VideoProcessor *processor = new VideoProcessor("..\\..\\videos\\movie10.mjpeg", "..\\..\\gt\\ferrari\\movie10.txt", "..\\..\\gt\\ferrari\\ref_hist_10.jpg", "results\\movie10_non_adaptive.txt", "ferrari", devs, false);
 		VideoProcessor *processor = new VideoProcessor(cnf);
 	//	processor->setFileNameForWeights("..\\results\\vidI_wgts.txt");
-	//	processor->processVideo();
+		processor->processVideo();
 	//	processor->estimateTimeToDetect();
-		processor->estimateQuality();
+	//	processor->estimateQuality();
 		delete fp;
 		delete cnf;
 	}

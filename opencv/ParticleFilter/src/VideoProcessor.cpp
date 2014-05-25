@@ -128,6 +128,7 @@ void VideoProcessor::estimateQuality(){
 				}
 			}
 			frame = Mat();
+			hsvFrame = Mat();
 			capture >> frame;
 			cvtColor(frame, hsvFrame, CV_RGB2HSV);
 		}
@@ -137,7 +138,8 @@ void VideoProcessor::estimateQuality(){
 		qualityIndexTotal(k,2) = Msf > 0 ? qualityIndexSF.sum() / (double)Msf : 0;
 		qualityIndexTotal(k,3) = tk > 0 ? (double)tsum/(double)tk : 0;
 		cout << "avg quality " << qualityIndex.mean() << " Msf " << Msf << "avg quality Msf " <<  qualityIndexTotal(k,2) << " Tk " << qualityIndexTotal(k,3) << endl;
-
+		qualityIndex = VectorXd(0);
+		qualityIndexSF = VectorXd(0);
 		delete pf;
 		capture.release();
 	}
@@ -185,6 +187,7 @@ void VideoProcessor::estimateTimeToDetect(){
 			}
 			*/
 			frame = Mat();
+
 					//cout << "before frame captured" << endl;
 			capture >> frame;
 					//cout << "captured new frame" << endl;
@@ -225,11 +228,11 @@ void VideoProcessor::processVideo(){
 	cout << "is adaptive: " << adaptive << endl;
 	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
 
-	Point *p = new Point(600, 100);
+	//Point *p = new Point(600, 100);
 	//pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 	pf->prepareFirstSet(states[0]->getRect());
-	Point *points = pf->getSetAsPoints();
+	//Point *points = pf->getSetAsPoints();
 	//Mat frame, hsvFrame;
 	/*for (int j=0; j<800; j++)
 		circle(frame, points[j],1, Scalar(0,255,0, 0));
@@ -247,7 +250,7 @@ void VideoProcessor::processVideo(){
 	for (int i=firstFrame; i<=lastFrame; i++){
 		cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
-		cout << "afer iter: " << endl;
+		//cout << "afer iter: " << endl;
 		//pf->calcClusters();
 		result->setWeightsForFrame(i-firstFrame, pf->getWeights());
 		Rect estRect = pf->getEstimatedState();
@@ -265,17 +268,19 @@ void VideoProcessor::processVideo(){
 		rectangle(frame, estRect, Scalar(0,0,255,0));
 
 		imshow(winName, frame);
-		//cout << "after imshow " << endl;
+		cout << "after imshow " << endl;
 		/*oss << "..//results//" << i << ".jpg";
 		imwrite(oss.str(), frame);
 		oss.str("");
 		*/
 		waitKey(1);
 		frame = Mat();
+		hsvFrame = Mat();
 		//cout << "before frame captured" << endl;
 		capture >> frame;
 		//cout << "captured new frame" << endl;
 		cvtColor(frame, hsvFrame, CV_RGB2HSV);
+
 	}
 
 	result->setQualityIndex(qualityIndex);

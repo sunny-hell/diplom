@@ -141,7 +141,7 @@ Config* FileProcessor::readConfig(const char *fName){
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
 			memcpy(tmpLine, line.c_str(), line.length()+1);
 			cnf->srcVideo = tmpLine; //line.c_str();
-			//cout << "srcVideo " << cnf.srcVideo << endl;
+			cout << "srcVideo " << cnf->srcVideo << endl;
 		} else if (line.compare("srcGT") == 0){
 			getline(inputFile, line);
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));

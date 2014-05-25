@@ -1,0 +1,20 @@
+srcVideo
+..\..\video\Vid_C_juice.avi
+srcGT
+..\..\gt\bobot\Vid_C_juice.txt
+//srcHist
+//..\..\..\gt\ferrari\ref_hist_10.jpg
+resName
+..\..\results\Seq_C_adaptive.txt
+//framesToInitName
+//..\..\..\results\framesToInit_movie07_adaptive_100_random.txt
+estimationsName
+..\..\results\estimation_SeqA_adaptive_20.txt
+gtType
+bobot
+adaptive
+true
+devs
+10 10 0.1 0.1 1 1 0.01 0.01
+iterations
+20
