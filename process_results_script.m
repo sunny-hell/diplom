@@ -1,4 +1,4 @@
-f = fopen('results\Seq_A_nonadaptive.txt');
+f = fopen('results\Seq_F_nonadaptive.txt');
 res = fscanf(f, '%d %f', [2 inf])';
 fclose(f);
 x = res(:,1);
@@ -39,6 +39,7 @@ tk
 tsum = tsum/tk
 subplot(2, 1, 1);
 plot(x, y);
+xlim([0, max(x)]);
 yPos = 0.3;
 hold on
 plot(get(gca,'xlim'), [yPos yPos], 'r'); % Adapts to x limits of current axes
@@ -47,7 +48,7 @@ ylabel('Q_k');
 
 title('Алгоритм воспроизведения условной плотности');
 
-f = fopen('results\Seq_A_adaptive.txt');
+f = fopen('results\Seq_F_adaptive.txt');
 res = fscanf(f, '%d %f', [2 inf])';
 fclose(f);
 x = res(:,1);
@@ -83,7 +84,7 @@ end
 tsum = tsum/tk
 subplot(2, 1, 2);
 plot(x, y);
-
+xlim([0, max(x)]);
 hold on
 plot(get(gca,'xlim'), [yPos yPos], 'r'); % Adapts to x limits of current axes
 hold off
