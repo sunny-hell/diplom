@@ -25,9 +25,12 @@ public:
 	VectorXd getQualityIndex();
 	VectorXd getDists();
 	VectorXd getFrameNums();
+	VectorXd getObservationProbability();
 	double getAverageQuality();
 	void initWeights(int frameNum, int particlesNum);
 	void setWeightsForFrame(int f, VectorXd wgts);
+	void setObservationProbability(VectorXd op);
+
 	MatrixXd getWeights();
 private:
 	VectorXd qualityIndex;
@@ -35,6 +38,7 @@ private:
 	VectorXd dists;
 	MatrixXd weights;
 	double avgQuality;
+	VectorXd observationProbability;
 };
 
 #endif /* CALCULATIONRESULT_H_ */

@@ -11,9 +11,10 @@ ParticleFilter::ParticleFilter(){
 	// TODO Auto-generated constructor stub
 }
 
-ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHist, double initDevs[], int frameW, int frameH, int nFrames, bool adaptive)
+ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHist, double initDevs[], int frameW, int frameH, int nFrames, bool adaptive, bool withUpdateModel)
 {
 	// TODO Auto-generated constructor stub
+	/*
 	this->N = N;
 	this->hBins = hBins;
 	this->sBins = sBins;
@@ -21,10 +22,12 @@ ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHis
 	this->alpha = 8.0;
 	this->beta = 0.5;
 	this->wgtCoeff = 1/sqrt(0.02*M_PI);
+	cout << wgtCoeff << endl;
 	this->frameWidth = frameW;
 	this->frameHeight = frameH;
 	this->nFrames = nFrames;
 	this->adaptive = adaptive;
+	this->withUpdateModel = withUpdateModel;
 	this->clusterNum = 0;
 	A.resize(8,8);
 	A.topLeftCorner(4,4).setIdentity();
@@ -37,7 +40,32 @@ ParticleFilter::ParticleFilter(int N, int hBins, int sBins, Histogramm *templHis
 		initialDevs[i] = initDevs[i];
 	noiseGen = new WhiteNoiseGenerator();
 	dists.resize(nFrames);
+	observationProbability.resize(nFrames);
 	qualityIndex.resize(nFrames);
+	*/
+}
+
+ParticleFilter::ParticleFilter(struct Config *cnf, Histogramm *templHist, int frameW, int frameH, int nFrames){
+	this->cnf = cnf;
+	this->templateHist = templHist;
+	this->frameWidth = frameW;
+	this->frameHeight = frameH;
+	this->nFrames = nFrames;
+	this->wgtCoeff = 1/sqrt(0.02*M_PI);
+	this->N = cnf->N;
+	A.resize(8,8);
+	A.topLeftCorner(4,4).setIdentity();
+	A.bottomLeftCorner(4,4).setZero();
+	A.topRightCorner(4,4).setIdentity();
+	A.bottomRightCorner(4,4).setIdentity();
+	particles.resize(N, 10);
+	noiseGen = new WhiteNoiseGenerator();
+	dists.resize(nFrames);
+	observationProbability.resize(nFrames);
+	qualityIndex.resize(nFrames);
+	initialDevs.resize(8);
+	for (int i=0; i<8; i++)
+		initialDevs[i] = cnf->devs[i];
 }
 
 /*
@@ -144,38 +172,47 @@ Rect ParticleFilter::getEstimatedState(){
 	return estimatedState;
 }
 
-void ParticleFilter::setClustersNum(int clNum){
-	clusterNum = clNum;
-	clusterCenters.resize(clusterNum);
-	clusters.resize(clusterNum);
-	clusterMap.resize(N);
-	clusterCenters.setLinSpaced(1/(double)N*10, 1/(double)N*0.1);
-	for (int i=0; i<clusterNum; i++){
-		//clusterCenters(i) = 1/(double)N*pow(0.1,(double)i);
-		cout << "center i: " << clusterCenters(i) << endl;
-	}
-}
+
 // итерация алгоритма
 void ParticleFilter::iter(Mat frame, int k){
 	//cout << "estState: " << estimatedState.x << " " << estimatedState.y << " " << estimatedState.width << " " << estimatedState.height << endl;
 	Mat estObj(frame, estimatedState);
 	MatrixXd curSet(N, 10);
 	curSet = particles;
-	Histogramm *h = new Histogramm(estObj, hBins, sBins);;
+	Histogramm *h = new Histogramm(estObj, cnf->hBins, cnf->sBins);;
 	VectorXd devs(8);
 	double dist;
+
 	// adaptive part
-	if (adaptive){
+	if (k>0 && (cnf->isAdaptive || cnf->withUpdateModel) ){
 		dist = h->compare(templateHist);
-		dists(k) = dist;
-		double sigmoid = (erf(alpha*(dist-beta)) + 1.0) / 2.0;
-		VectorXd devs(8);
-		double minHW = fmin(estimatedState.width, estimatedState.height);
-		double dynCoeff = 1-sigmoid;
-		devs.head(4) = initialDevs.head(4) * sigmoid * minHW;
-		devs.tail(4) = initialDevs.tail(4) * dynCoeff * minHW;
-		curSet.block(0,4,N,4) = curSet.block(0,4,N,4) * dynCoeff;
-		noiseGen->setCovar(devs);
+		//cout << "dist: " << dist << endl;
+		dists(k-1) = dist;
+		if (cnf->withUpdateModel){
+
+			observationProbability(k-1) = wgtCoeff*exp(-dist/0.02);
+			if (observationProbability(k-1) > cnf->threshold){
+				/* update target model */
+				for (int hb=0; hb < cnf->hBins; hb++){
+					for (int sb=0; sb< cnf->sBins; sb++){
+						templateHist->hist.at<float>(hb,sb) = (1-cnf->gamma)*templateHist->hist.at<float>(hb,sb) + cnf->gamma*h->hist.at<float>(hb,sb);
+					}
+
+				}
+			}
+		}
+		if (cnf->isAdaptive){
+			double sigmoid = (erf(cnf->alpha*(dist-cnf->beta)) + 1.0) / 2.0;
+			VectorXd devs(8);
+			double minHW = fmin(estimatedState.width, estimatedState.height);
+			double dynCoeff = 1-sigmoid;
+			devs.head(4) = initialDevs.head(4) * sigmoid * minHW;
+			devs.tail(4) = initialDevs.tail(4) * dynCoeff * minHW;
+			curSet.block(0,4,N,4) = curSet.block(0,4,N,4) * dynCoeff;
+			noiseGen->setCovar(devs);
+		} else {
+			noiseGen->setCovar(initialDevs);
+		}
 	} else {
 		noiseGen->setCovar(initialDevs);
 	}
@@ -203,7 +240,7 @@ void ParticleFilter::iter(Mat frame, int k){
 		particles(i,3) = fmax(1, fmin(particles(i,3), frameHeight-particles(i,1)-1));
 		Mat curMat(frame, Rect(particles(i,0), particles(i,1), particles(i,2), particles(i,3)));
 		h->clear();
-		h = new Histogramm(curMat, hBins, sBins);
+		h = new Histogramm(curMat, cnf->hBins, cnf->sBins);
 		dist = h->compare(templateHist);
 		particles(i,8) = wgtCoeff*exp(-dist/0.02);
 		particles(i,9) = (i > 0) ? particles(i,8) + particles(i-1, 9) : particles(i,8);
@@ -212,77 +249,10 @@ void ParticleFilter::iter(Mat frame, int k){
 
 	particles.col(8) = particles.col(8) / particles(N-1, 9);
 	particles.col(9) = particles.col(9) / particles(N-1, 9);
-	if (clusterNum > 0)
-		calcClusters();
+
 	estimateState();
 }
 
-void ParticleFilter::calcClusters(){
-
-	bool nextIter = true;
-	int k=0;
-	while (nextIter){
-		k++;
-		cout << "iter: " << k << endl;
-		for (int i=0; i<clusterNum; i++){
-			clusters[i].clear();
-		}
-		//cout << "cleared clusters" << endl;
-		for (int j =0; j<N; j++){
-			double minDist = 1;
-			int minIndex = 0;
-			for (int i=0; i<clusterNum; i++){
-				double d = abs(particles(j,8)-clusterCenters(i));
-
-				if (d < minDist){
-					minDist = d;
-					minIndex = i;
-				}
-			}
-			clusters[minIndex].push_back(particles(j,8));
-			clusterMap(j) = minIndex;
-			//cout << j << " to " << minIndex << " with mindist " << minDist << endl;
-		}
-
-		nextIter = false;
-		VectorXd newCenters(clusterNum);
-		for (int i=0; i<clusterNum; i++){
-			cout << "in cluster " << i << " " << clusters[i].size() << " elements " << endl;
-			if (clusters[i].size() > 0){
-				double mean = 0.0;
-				for (int j=0; j<clusters[i].size(); j++){
-					mean += clusters[i][j];
-
-				}
-
-				cout << "mean sum " << mean << endl;
-				mean /= (double)clusters[i].size();
-				newCenters(i) = mean;
-			} else {
-				newCenters(i) = clusterCenters(i);
-			}
-			cout << " new center " << i << " is " << newCenters(i) << endl;
-			if (abs(newCenters(i)-clusterCenters(i)) > 1e-5){
-				nextIter = true;
-				cout << "next iter" << endl;
-			}
-			clusterCenters(i) = newCenters(i);
-		}
-
-	}
-}
-
-VectorXd ParticleFilter::getClusterMap(){
-	return clusterMap;
-}
-
-MatrixXd ParticleFilter::getSetAsClusters(){
-	MatrixXd clusterSet(N, 3);
-	clusterSet.col(0) = particles.col(0);
-	clusterSet.col(1) = particles.col(1);
-	clusterSet.col(2) = clusterMap;
-	return clusterSet;
-}
 ParticleFilter::~ParticleFilter() {
 	// TODO Auto-generated destructor stub
 }

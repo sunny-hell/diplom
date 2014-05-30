@@ -17,7 +17,7 @@ VideoProcessor::VideoProcessor() {
 
 }
 
-VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const char *refHistFile, const char *resultFile, const char *gtType, double devs[], bool adaptive) {
+VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const char *refHistFile, const char *resultFile, const char *gtType, double devs[], bool adaptive, bool withUpdateModel) {
 	this->fNameVideo = videoFile;
 	this->fNameGT = gtFile;
 	this->fNameRefHist = refHistFile;
@@ -31,6 +31,7 @@ VideoProcessor::VideoProcessor(const char *videoFile, const char *gtFile, const 
 }
 
 VideoProcessor::VideoProcessor(struct Config *cnf){
+	this->cnf = cnf;
 	this->fNameVideo = cnf->srcVideo;
 	this->fNameGT = cnf->srcGT;
 	this->fNameRefHist = cnf->srcHist;
@@ -41,6 +42,7 @@ VideoProcessor::VideoProcessor(struct Config *cnf){
 	this->fNameFramesToInit = cnf->fNameFramesToInit;
 	this->iterationsCount = cnf->iterationsCount;
 	this->fNameQualityEstimation = cnf->fNameQualityEstimation;
+	this->withUpdateModel = cnf->withUpdateModel;
 	for (int i=0; i<8; i++){
 		this->devs[i] = cnf->devs[i];
 	}
@@ -98,7 +100,8 @@ void VideoProcessor::estimateQuality(){
 		cout << "k=" << k << endl;
 		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 		int nFrames = lastFrame-firstFrame+1;
-		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
+		//ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive, withUpdateModel);
+		ParticleFilter *pf = new ParticleFilter(cnf, templateHist, width, height, nFrames);
 		pf->prepareFirstSet(states[0]->getRect());
 		int tk=0, tst=firstFrame, tsum=0, Msf=0;
 		VectorXd qualityIndex(nFrames);
@@ -158,7 +161,8 @@ void VideoProcessor::estimateTimeToDetect(){
 		cout << "k=" << k << endl;
 		prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 		int nFrames = lastFrame-firstFrame+1;
-		ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
+		//ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive, withUpdateModel);
+		ParticleFilter *pf = new ParticleFilter(cnf, templateHist, width, height, nFrames);
 		//Point *p = new Point(600, 100);
 		pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
 		Rect estRect= pf->getEstimatedState();
@@ -226,8 +230,8 @@ void VideoProcessor::processVideo(){
 	cout << capture.get(CV_CAP_PROP_POS_FRAMES) << endl;
 	int nFrames = lastFrame-firstFrame+1;
 	cout << "is adaptive: " << adaptive << endl;
-	ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive);
-
+	//ParticleFilter *pf = new ParticleFilter(800, 50, 60, templateHist, devs, width, height, nFrames, adaptive, withUpdateModel);
+	ParticleFilter *pf = new ParticleFilter(cnf, templateHist, width, height, nFrames);
 	//Point *p = new Point(600, 100);
 	//pf->prepareFirstSetAtPoint(states[0]->getRect(), p);
 	//pf->prepareFirstSetRandom(states[0]->getRect(), width, height);
@@ -248,7 +252,7 @@ void VideoProcessor::processVideo(){
 	result->initWeights(nFrames, 800);
 
 	for (int i=firstFrame; i<=lastFrame; i++){
-		cout << "frame " << i << endl;
+		//cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
 		//cout << "afer iter: " << endl;
 		//pf->calcClusters();
@@ -258,17 +262,13 @@ void VideoProcessor::processVideo(){
 
 		//cout << estRect.x << " " << estRect.y << " " << estRect.width << " " << estRect.height << endl;
 		Point *points = pf->getSetAsPoints();
-		//clusters = pf->getSetAsClusters();
-		//cout << "clusters: " <<  clusters.rows() << " X " << clusters.cols() << endl;
-		//for (int j=0; j<clusters.rows(); j++)
-		//	circle(frame, Point(clusters(j,0), clusters(j,1)),1, colors[clusters(j,2)]);
-		for (int j=0; j<800; j++)
-			circle(frame, points[j],1, Scalar(0,255,0, 0));
+		//for (int j=0; j<800; j++)
+		//	circle(frame, points[j],1, Scalar(0,255,0, 0));
 
 		rectangle(frame, estRect, Scalar(0,0,255,0));
 
 		imshow(winName, frame);
-		cout << "after imshow " << endl;
+	//	cout << "after imshow " << endl;
 		/*oss << "..//results//" << i << ".jpg";
 		imwrite(oss.str(), frame);
 		oss.str("");
@@ -289,6 +289,10 @@ void VideoProcessor::processVideo(){
 
 	if (adaptive){
 		result->setDists(pf->dists);
+	}
+	if (withUpdateModel){
+		cout << "setting observ probability" << endl;
+		result->setObservationProbability(pf->observationProbability);
 	}
 	//cout << "before save result: " << fNameResult << endl;
 	fp->saveCalculationResult(fNameResult, result);

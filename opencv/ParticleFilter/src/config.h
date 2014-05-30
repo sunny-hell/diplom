@@ -19,7 +19,17 @@ struct Config{
 	const char *fNameFramesToInit;
 	const char *fNameQualityEstimation;
 	int iterationsCount;
+	int N;
+	int hBins;
+	int sBins;
+	double alpha;
+	double beta;
+	double gamma;
+	double threshold;
+
 	bool isAdaptive;
+	bool withUpdateModel;
+
 
 	Config(){
 		srcVideo = "";
@@ -31,6 +41,11 @@ struct Config{
 		fNameFramesToInit = "";
 		fNameQualityEstimation = "";
 		iterationsCount = 0;
+		N = 800;
+		hBins = 50;
+		sBins = 60;
+		alpha = 8.0;
+		beta = 0.5;
 	}
 
 };

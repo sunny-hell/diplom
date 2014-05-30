@@ -1,20 +1,26 @@
 srcVideo
-..\..\video\ptzSequence.avi
+..\..\..\video\Vid_A_ball.avi
 srcGT
-..\..\gt\ferrari\ptzSequenceGroundTruth.txt
+..\..\..\gt\bobot\Vid_A_ball.txt
 //srcHist
-//..\..\..\gt\ferrari\ref_hist_10.jpg
+//..\..\..\gt\ferrari\ref_hist_01.jpg
 resName
-..\..\results\ptzSequence.txt
+..\..\..\results\compare\vidA_update.txt
 //framesToInitName
 //..\..\..\results\framesToInit_movie07_adaptive_100_random.txt
-estimationsName
-..\..\results\estimation_SeqB_nonadaptive_20_2.txt
+//estimationsName
+//..\..\results\estimation_SeqB_nonadaptive_20_2.txt
 gtType
-ferrari
+bobot
 adaptive
+false
+updateModel
 true
 devs
-15 15 0.01 0.01 1 1 0.001 0.001
+15 15 0.1 0.1 1 1 0.01 0.01
 iterations
 20
+gamma
+0.001
+threshold
+1e-5

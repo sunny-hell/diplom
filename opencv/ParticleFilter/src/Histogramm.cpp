@@ -33,7 +33,8 @@ Histogramm::~Histogramm() {
 }
 
 double Histogramm::compare(Histogramm *compareToHist){
-	return compareHist( hist, compareToHist->hist, CV_COMP_BHATTACHARYYA );
+	double d = compareHist( hist, compareToHist->hist, CV_COMP_BHATTACHARYYA );
+	return d*d;
 
 }
 

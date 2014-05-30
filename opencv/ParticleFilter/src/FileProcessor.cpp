@@ -87,14 +87,19 @@ void FileProcessor::writeNumbers(const char *fname, VectorXd numbers){
 void FileProcessor::saveCalculationResult(const char *fName, CalculationResult *res){
 	ofstream outfile;
 	outfile.open(fName);
-	VectorXd dists = res->getDists();
+	VectorXd observProb = res->getObservationProbability();
 	VectorXd qualityIndex = res->getQualityIndex();
 	VectorXd frameNums = res->getFrameNums();
 	int N = qualityIndex.rows();
 	int M = frameNums.rows();
+	int OP = observProb.rows();
 	cout << "N= " << N <<  " M= "<< M <<  endl;
+
 	for (int i = 0; i < N; i++){
-		outfile << frameNums(i) << '\t' << qualityIndex(i) << '\n';
+		outfile << frameNums(i) << '\t' << qualityIndex(i);
+		if (observProb.rows() > 0)
+			outfile << '\t' << observProb(i);
+		outfile << '\n';
 	}
 	outfile.close();
 
@@ -171,15 +176,18 @@ Config* FileProcessor::readConfig(const char *fName){
 			cnf->isAdaptive = (line.compare("true") == 0);
 
 			//cout << "adaptive " << cnf.isAdaptive << endl;
+		} else if (line.compare("updateModel") == 0){
+			getline(inputFile, line);
+			cnf->withUpdateModel = (line.compare("true") == 0);
 		} else if (line.compare("devs") == 0){
 			getline(inputFile, line);
 			istringstream iss(line);
-			//cout << "devs";
+			cout << "devs";
 			for (int i=0; i<8; i++){
 				iss >> cnf->devs[i];
-				//cout << " " << cnf->devs[i];
+				cout << " " << cnf->devs[i];
 			}
-			//cout << endl;
+			cout << endl;
 			iss.clear();
 		} else if (line.compare("resWeights") == 0){
 			getline(inputFile, line);
@@ -201,6 +209,41 @@ Config* FileProcessor::readConfig(const char *fName){
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
 			memcpy(tmpLine, line.c_str(), line.length()+1);
 			cnf->fNameQualityEstimation = tmpLine;
+		} else if (line.compare("N") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->N;
+			iss.clear();
+		} else if (line.compare("hBins") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->hBins;
+			iss.clear();
+		} else if (line.compare("sBins") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->sBins;
+			iss.clear();
+		} else if (line.compare("alpha") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->alpha;
+			iss.clear();
+		} else if (line.compare("beta") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->beta;
+			iss.clear();
+		} else if (line.compare("gamma") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->gamma;
+			iss.clear();
+		} else if (line.compare("threshold") == 0){
+			getline(inputFile, line);
+			istringstream iss(line);
+			iss >> cnf->threshold;
+			iss.clear();
 		}
 	}
 	//istringstream iss(line);

@@ -15,6 +15,7 @@
 #include <math.h>
 #include <exception>
 #include "WhiteNoiseGenerator.h"
+#include "config.h"
 
 
 using namespace std;
@@ -23,7 +24,8 @@ using namespace Eigen;
 class ParticleFilter {
 public:
 	ParticleFilter();
-	ParticleFilter(int N, int hBins, int sBins, Histogramm *templHist, double initDevs[], int frameW, int frameH, int nFrames, bool adaptive);
+	ParticleFilter(int N, int hBins, int sBins, Histogramm *templHist, double initDevs[], int frameW, int frameH, int nFrames, bool adaptive, bool withUpdateModel);
+	ParticleFilter(Config *cnf, Histogramm *templHist, int frameW, int frameH, int nFrames);
 	virtual ~ParticleFilter();
 
 	void prepareFirstSet(Rect r);
@@ -34,36 +36,28 @@ public:
 	Point* getSetAsPoints();
 	Rect getEstimatedState();
 	VectorXd dists;
+	VectorXd observationProbability;
 	VectorXd getWeights();
-	VectorXd getClusterMap();
-	MatrixXd getSetAsClusters();
-	void setClustersNum(int clNum);
-	void calcClusters();
+
+
 	void estimateState();
+
 private:
-	int N;
 	MatrixXd particles;
 	vector<vector<double>> clusters;
 	VectorXd clusterMap;
 	Histogramm *templateHist;
 	Rect estimatedState;
-	//double initialDevs[8];
-
-	int hBins;
-	int sBins;
-	double alpha;
-	double beta;
-	double wgtCoeff;
+	struct Config *cnf;
 	VectorXd initialDevs;
+	double wgtCoeff;
 	MatrixXd A;
 	WhiteNoiseGenerator *noiseGen;
 	int frameWidth;
 	int frameHeight;
-	bool adaptive;
 	VectorXd qualityIndex;
 	int nFrames;
-	int clusterNum;
-	VectorXd clusterCenters;
+	int N;
 
 };
 
