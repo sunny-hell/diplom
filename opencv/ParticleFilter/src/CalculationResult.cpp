@@ -14,6 +14,7 @@ CalculationResult::CalculationResult() {
 
 CalculationResult::~CalculationResult() {
 	// TODO Auto-generated destructor stub
+
 }
 
 void CalculationResult::initWeights(int frameNum, int particlesNum){
@@ -36,6 +37,12 @@ void CalculationResult::setDists(VectorXd dists){
 	this->dists = dists;
 }
 
+void CalculationResult::setObservationProbability(VectorXd op){
+	this->observationProbability = op;
+}
+VectorXd CalculationResult::getObservationProbability(){
+	return observationProbability;
+}
 VectorXd CalculationResult::getQualityIndex(){
 	return qualityIndex;
 }

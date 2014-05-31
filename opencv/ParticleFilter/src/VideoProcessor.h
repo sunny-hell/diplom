@@ -26,7 +26,7 @@ using namespace std;
 class VideoProcessor {
 public:
 	VideoProcessor();
-	VideoProcessor(const char *videoFile, const char *gtFile, const char *refHistFile,  const char *resFile, const char *gtType,  double devs[], bool adaptive);
+	VideoProcessor(const char *videoFile, const char *gtFile, const char *refHistFile,  const char *resFile, const char *gtType,  double devs[], bool adaptive, bool withUpdateModel);
 	VideoProcessor(struct Config *cnf);
 	virtual ~VideoProcessor();
 
@@ -49,7 +49,9 @@ private:
 	VideoCapture capture;
 	double devs[8];
 	bool adaptive;
+	bool withUpdateModel;
 	Histogramm *templateHist;
+	struct Config *cnf;
 	void shiftToFrame(int frameNum);
 	void prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height, Mat *frame, Mat *hsvFrame);
 };
