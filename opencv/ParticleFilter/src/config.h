@@ -18,6 +18,7 @@ struct Config{
 	const char *fNameWeights;
 	const char *fNameFramesToInit;
 	const char *fNameQualityEstimation;
+	const char *fNameDistsBG;
 	int iterationsCount;
 	int N;
 	int hBins;
@@ -40,6 +41,7 @@ struct Config{
 		fNameWeights = "";
 		fNameFramesToInit = "";
 		fNameQualityEstimation = "";
+		fNameDistsBG = "";
 		iterationsCount = 0;
 		N = 800;
 		hBins = 50;

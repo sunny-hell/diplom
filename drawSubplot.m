@@ -7,5 +7,6 @@ function drawSubplot(x, y, title)
     hold on
     plot(xlim(), [yPos yPos], 'r'); % Adapts to x limits of current axes
     hold off
-    ylabel(sprintf('%s Q_k', title));
+   % 
+    ylabel(title);
 end

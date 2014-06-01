@@ -34,6 +34,7 @@ public:
 	void estimateTimeToDetect();
 	void estimateQuality();
 	void setFileNameForWeights(const char* fName);
+	void calcDistsFromBG();
 private:
 	const char *fNameVideo;
 	const char *fNameGT;
@@ -54,6 +55,7 @@ private:
 	struct Config *cnf;
 	void shiftToFrame(int frameNum);
 	void prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height, Mat *frame, Mat *hsvFrame);
+	int getFrameCount();
 };
 
 #endif /* VIDEOPROCESSOR_H_ */

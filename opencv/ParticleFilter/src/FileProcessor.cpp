@@ -209,6 +209,11 @@ Config* FileProcessor::readConfig(const char *fName){
 			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
 			memcpy(tmpLine, line.c_str(), line.length()+1);
 			cnf->fNameQualityEstimation = tmpLine;
+		} else if (line.compare("distsBGName") == 0){
+			getline(inputFile, line);
+			char *tmpLine = (char *) malloc(sizeof(char)*(line.length()+1));
+			memcpy(tmpLine, line.c_str(), line.length()+1);
+			cnf->fNameDistsBG = tmpLine;
 		} else if (line.compare("N") == 0){
 			getline(inputFile, line);
 			istringstream iss(line);

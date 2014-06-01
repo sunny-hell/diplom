@@ -179,19 +179,21 @@ void ParticleFilter::iter(Mat frame, int k){
 	Mat estObj(frame, estimatedState);
 	MatrixXd curSet(N, 10);
 	curSet = particles;
-	Histogramm *h = new Histogramm(estObj, cnf->hBins, cnf->sBins);;
+	Histogramm *h = new Histogramm(estObj, cnf->hBins, cnf->sBins);
+	//Histogramm *h = new Histogramm(estObj, 256); //cnf->hBins, cnf->sBins);
 	VectorXd devs(8);
 	double dist;
 
 	// adaptive part
-	if (k>0 && (cnf->isAdaptive || cnf->withUpdateModel) ){
+	if (cnf->isAdaptive || cnf->withUpdateModel ){
 		dist = h->compare(templateHist);
 		//cout << "dist: " << dist << endl;
-		dists(k-1) = dist;
+		dists(k) = dist;
 		if (cnf->withUpdateModel){
-
-			observationProbability(k-1) = wgtCoeff*exp(-dist/0.02);
-			if (observationProbability(k-1) > cnf->threshold){
+			//cout << "dist: " << dist << endl;
+			//observationProbability(k) = wgtCoeff*exp(-dist/0.02);
+			//cout << observationProbability(k) << endl;
+			if (dist < cnf->threshold){
 				/* update target model */
 				for (int hb=0; hb < cnf->hBins; hb++){
 					for (int sb=0; sb< cnf->sBins; sb++){
@@ -241,6 +243,7 @@ void ParticleFilter::iter(Mat frame, int k){
 		Mat curMat(frame, Rect(particles(i,0), particles(i,1), particles(i,2), particles(i,3)));
 		h->clear();
 		h = new Histogramm(curMat, cnf->hBins, cnf->sBins);
+	//	h = new Histogramm(curMat, 256); //cnf->hBins, cnf->sBins);
 		dist = h->compare(templateHist);
 		particles(i,8) = wgtCoeff*exp(-dist/0.02);
 		particles(i,9) = (i > 0) ? particles(i,8) + particles(i-1, 9) : particles(i,8);

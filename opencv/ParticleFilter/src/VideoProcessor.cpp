@@ -65,6 +65,18 @@ void VideoProcessor::shiftToFrame(int frameNum){
 	frame = Mat();
 }
 
+int VideoProcessor::getFrameCount(){
+	VideoCapture capt;
+	capt.open(fNameVideo);
+	int i = 0;
+	Mat frame;
+	while (capt.read(frame)){
+		i++;
+	}
+
+	capt.release();
+	return i;
+}
 void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *width, int *height,
 									   Mat *frame, Mat *hsvFrame){
 	FileProcessor *fp = new FileProcessor();
@@ -85,10 +97,12 @@ void VideoProcessor::prepareToTracking(int *firstFrame, int *lastFrame, int *wid
 		templObj= imread(fNameRefHist, CV_LOAD_IMAGE_COLOR);
 		cvtColor(templObj, templObjHsv, CV_RGB2HSV);
 	} else {
+
 		templObjHsv = Mat(*hsvFrame, states[0]->getRect());
 		rectangle(*frame, states[0]->getRect(), Scalar(0,255,0,0));
 	}
-	templateHist = new Histogramm(templObjHsv, 50, 60);
+	templateHist = new Histogramm(templObjHsv, cnf->hBins, cnf->sBins);
+
 	delete fp;
 }
 
@@ -217,6 +231,10 @@ void VideoProcessor::processVideo(){
 	int firstFrame, lastFrame, width, height;
 
 	Mat frame, hsvFrame;
+	//cout << "counting frames..." ;
+	//int nFrames = getFrameCount();
+	//cout << "done" << endl;
+	//cout << "frames count is " << nFrames << endl;
 	prepareToTracking(&firstFrame, &lastFrame, &width, &height, &frame, &hsvFrame);
 	cout << width << " " << height << endl;
 	string winName = "pf";
@@ -246,24 +264,26 @@ void VideoProcessor::processVideo(){
 	*/
 	cout << "nFrames: " << nFrames << endl;
 	//State *estimatedStates[nFrames];
-	VectorXd qualityIndex(nFrames);
+	VectorXd qualityIndex(lastFrame-firstFrame+1);
 	//ostringstream oss;
 	CalculationResult *result = new CalculationResult();
-	result->initWeights(nFrames, 800);
+	//result->initWeights(nFrames, 800);
 
 	for (int i=firstFrame; i<=lastFrame; i++){
 		//cout << "frame " << i << endl;
 		pf->iter(hsvFrame, i-firstFrame);
+		//pf->iter(frame, i-firstFrame);
 		//cout << "afer iter: " << endl;
 		//pf->calcClusters();
-		result->setWeightsForFrame(i-firstFrame, pf->getWeights());
+		//result->setWeightsForFrame(i-firstFrame, pf->getWeights());
 		Rect estRect = pf->getEstimatedState();
 		qualityIndex(i-firstFrame) = states[i-firstFrame]->getQualityIndex(estRect);
+		rectangle(frame, states[i-firstFrame]->getRect(), Scalar(0,255,0));
 
 		//cout << estRect.x << " " << estRect.y << " " << estRect.width << " " << estRect.height << endl;
 		Point *points = pf->getSetAsPoints();
-		//for (int j=0; j<800; j++)
-		//	circle(frame, points[j],1, Scalar(0,255,0, 0));
+		for (int j=0; j<cnf->N; j++)
+			circle(frame, points[j],1, Scalar(255,0,0, 0));
 
 		rectangle(frame, estRect, Scalar(0,0,255,0));
 
@@ -307,4 +327,35 @@ void VideoProcessor::processVideo(){
 	delete[] states;
 }
 
+void VideoProcessor::calcDistsFromBG(){
+	FileProcessor *fp = new FileProcessor();
+	capture.open(fNameVideo);
+	int width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+	int height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+	int firstFrame, lastFrame;
+	if (strcmp(gtType, "ferrari") == 0){
+		states = fp->readGTStatesFerrari(fNameGT, &firstFrame, &lastFrame);
+	} else if (strcmp(gtType, "bobot") == 0){
+		states = fp->readGTStatesBobot(fNameGT, &firstFrame, &lastFrame, width, height);
+	}
+	shiftToFrame(firstFrame-1);
+	Mat frame, hsvFrame;
+	Histogramm *bgHist, *objHist;
+	int nFrames = lastFrame-firstFrame+1;
+	VectorXd dists(nFrames);
+	for (int i=firstFrame; i<=lastFrame; i++){
+		capture >> frame;
+		//cout << "captured new frame" << endl;
+		cvtColor(frame, hsvFrame, CV_RGB2HSV);
 
+		Rect objRect = states[i-firstFrame]->getRect();
+		bgHist = new Histogramm(frame, cnf->hBins, cnf->sBins);
+		Mat obj(hsvFrame, objRect);
+
+		objHist = new Histogramm(obj, cnf->hBins, cnf->sBins);
+		dists(i) = bgHist->compare(objHist);
+	}
+	capture.release();
+	fp->writeNumbers(cnf->fNameDistsBG, dists);
+	delete fp;
+}

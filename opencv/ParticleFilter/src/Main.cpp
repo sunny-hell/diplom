@@ -55,13 +55,15 @@ int main(int ac, char** av)
 
 	try{
 		FileProcessor *fp = new FileProcessor();
-		Config *cnf = fp->readConfig("..\\config.txt");
+		Config *cnf = fp->readConfig("config.txt");
+		cout << cnf->hBins << " " << cnf->sBins << endl;
 	//	VideoProcessor *processor = new VideoProcessor("..\\..\\videos\\movie10.mjpeg", "..\\..\\gt\\ferrari\\movie10.txt", "..\\..\\gt\\ferrari\\ref_hist_10.jpg", "results\\movie10_non_adaptive.txt", "ferrari", devs, false);
 		VideoProcessor *processor = new VideoProcessor(cnf);
 	//	processor->setFileNameForWeights("..\\results\\vidI_wgts.txt");
-		processor->processVideo();
+	//	processor->processVideo();
+	//	processor->calcDistsFromBG();
 	//	processor->estimateTimeToDetect();
-	//	processor->estimateQuality();
+	 	processor->estimateQuality();
 		delete fp;
 		delete cnf;
 	}

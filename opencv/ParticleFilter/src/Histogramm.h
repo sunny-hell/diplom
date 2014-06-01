@@ -18,12 +18,14 @@ class Histogramm {
 public:
 	Histogramm();
 	Histogramm(Mat img, int hBins, int sBins);
+	Histogramm(Mat img, int bins);
 	virtual ~Histogramm();
 
 	MatND hist;
 	MatND rgbHist;
 	int hBins;
 	int sBins;
+	int bins;
 
 	double compare(Histogramm *compareToHist);
 	void clear();
