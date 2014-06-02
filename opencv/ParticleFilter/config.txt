@@ -15,7 +15,7 @@ distsBGName
 gtType
 bobot
 adaptive
-false
+true
 updateModel
 false
 devs
