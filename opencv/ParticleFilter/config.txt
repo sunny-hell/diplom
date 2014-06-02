@@ -1,7 +1,7 @@
 srcVideo
-..\..\video\Vid_A_ball.avi
+..\..\..\video\Vid_A_ball.avi
 srcGT
-..\..\gt\bobot\Vid_A_ball.txt
+..\..\..\gt\bobot\Vid_A_ball.txt
 //srcHist
 //..\..\gt\ferrari\ref_hist_10.jpg
 resName
@@ -9,13 +9,13 @@ resName
 //framesToInitName
 //..\..\..\results\framesToInit_movie07_adaptive_100_random.txt
 estimationsName
-..\..\results\compare\estimation_SeqA_adaptive_20.txt
+..\..\..\results\compare\estimation_SeqA_20.txt
 distsBGName
 ..\..\results\VidI_dists.txt
 gtType
 bobot
 adaptive
-true
+false
 updateModel
 false
 devs
